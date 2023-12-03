@@ -11,7 +11,8 @@ let z = 0;
 
 const functionList = [
   "clear",
-  "book"
+  "book",
+  "canvas"
 ];
 
 const responceList = {
@@ -86,6 +87,9 @@ function finishFunction () {
 
 // CAL FUNCTIONS
 
+
+// CLEAR
+
 function clear() {
   input = "";
   outputField.innerHTML = "";
@@ -94,26 +98,40 @@ function clear() {
 }
 
 
+// CANVAS
 
-let bookOfPages = {"book" : "Welcome to the book, you can use 'new page' to create new pages.\n'edit page' will allow you to quickly edit the pages text.\n'delete page' will give you the option to delete the page your currently looking at.\nTo navigate this book and look at other pages you just have to type the name of the page and hit Enter.\nFor a list of every page in this book just type 'list'.\nTo close the book and return back to Cal just type 'exit'."};
-let current_page = ""
+function canvas() {
+  outputField.innerHTML = "<canvas id='canvas' width='580px' height='250px'></canvas>";
+  /** @type {HTMLCanvasElement} */
+  const canvas = document.querySelector("#canvas");
+  const c = canvas.getContext('2d');
+  c.fillStyle = 'red';
+  c.fillRect(0, 0, 580, 250);
+}
+
+
+
+// BOOK
+
+let current_page = "";
+let previous_page = "";
 function book() {
   outputField.innerHTML = "";
   if (bookOfPages.hasOwnProperty("list")) {
     delete bookOfPages["list"];
   }
   if (x == 0 && y == 0 && z == 0) {
-    if (input == "new page") {
+    if (input == "new page") { // WANT TO MAKE A NEW PAGE
       x = "new page";
       newLine("Creating new page, please enter the title of the page");
-    } else if (input == "edit page" && current_page != "book") {
+    } else if (input == "edit page" && current_page != "book") { // IF EDITIING CURRENT PAGE TEXT
       x = "edit page";
       newLine("Please enter the new Text for this page.")
       lowerCaseInput = false;
-    } else if (input == "delete page" && current_page != "book") {
+    } else if (input == "delete page" && current_page != "book") { // IF DELETING CURRENT PAGE
       x = "delete page";
       newLine(`Are you sure you want to delete page : ${current_page}?\n\n<hr>\n1 - Yes\n\n2 - No`);
-    } else if (input == "list") {
+    } else if (input == "list") { // CALLING FOR A LIST OF ALL PAGES
       let listOutput = "Here is a list of every page:\n\n";
       let listOfKeys = Object.keys(bookOfPages);
       for (let i=0; i<listOfKeys.length; i++) {
@@ -122,13 +140,18 @@ function book() {
       bookOfPages["list"] = listOutput;
       outputField.style.textAlign = "center";
       outputField.innerHTML = `<h1>list</h1><hr>${bookOfPages["list"]}`;
-    } else if (input == "exit") {
+    } else if (input == "exit") { // IF EXITING BOOK
       clear();
-    } else if (bookOfPages.hasOwnProperty(input)) {
+    } else if (input == "back") { // IF GOING BACK TO PREVIOUS PAGE
+      current_page = previous_page;
+      outputField.style.textAlign = "center";
+      outputField.innerHTML = `<h1>${current_page}</h1><hr>${bookOfPages[current_page]}`;
+    } else if (bookOfPages.hasOwnProperty(input)) { // IF YOU ARE MOVING TO A PAGE THAT EXISTS
+      previous_page = current_page;
       current_page = input;
       outputField.style.textAlign = "center";
       outputField.innerHTML = `<h1>${input}</h1><hr>${bookOfPages[input]}`;
-    } else {
+    } else { // IF THERE IS NOT A PAGE OF WHAT YOU HAVE TYPED
       newLine(`Page : ${input} does not exist.`)
       enterButton.disabled = true;
       setTimeout(() => {
@@ -154,6 +177,7 @@ function book() {
             bookOfPages[y] = z;
             outputField.style.textAlign = "center";
             outputField.innerHTML = `<h1>${y}</h1><hr>${bookOfPages[y]}`;
+            previous_page = current_page;
             current_page = y;
             x = 0;
             y = 0;

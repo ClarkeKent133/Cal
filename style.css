@@ -37,7 +37,7 @@ body {
 }
 
 .console-output {
-  height: 70%;
+  height: 260px;
   overflow-y: auto;
   background-color: #12232e;
   margin-bottom: 10px;
