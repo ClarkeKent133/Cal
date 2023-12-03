@@ -1,0 +1,106 @@
+body {
+  margin: 0px;
+}
+
+.console-output hr {
+  border: 0;
+  height: 1px;
+  background: rgba(176,196,222,0.2); /* Adjust the color to match your console's color scheme */
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.console-output h1 {
+  margin: 0px;
+}
+
+.console-output span {
+  opacity: .6;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.console {
+  background-color: lightsteelblue;
+  color: #ffffff;
+  padding: 20px;
+  font-family: 'Consolas', monospace;
+  border-radius: 8px;
+  border: solid #12232e 2px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+  width: 600px;
+  max-width: 100%;
+  height: 350px;
+  margin: 10px auto;
+  position: relative;
+  transition: width 0.3s ease-in-out; /* Smooth transition for resizing */
+}
+
+.console-output {
+  height: 70%;
+  overflow-y: auto;
+  background-color: #12232e;
+  margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  white-space: pre-wrap;
+  box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.input-area {
+  display: flex; /* Align items in a row */
+  align-items: stretch; /* Align the height of button and input */
+}
+
+.console-output::-webkit-scrollbar {
+  width: 8px;
+}
+
+.console-output::-webkit-scrollbar-thumb {
+  background: #4d648d;
+  border-radius: 4px;
+}
+
+.console-input {
+  width: calc(100% - 120px);
+  height: 50px;
+  flex-grow: 1; /* Input field takes remaining space */
+  margin-right: 10px; /* Space between input field and button */
+  border: 2px solid #4d648d;
+  border-radius: 5px;
+  padding: 5px;
+  background-color: #203a43;
+  color: white;
+}
+
+.console-input:focus {
+  outline: none;
+  border-color: #4d648d;
+}
+
+.console-enter {
+  width: 100px;
+  height: 63px;
+  background-color: #4d648d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.console-enter:hover {
+  background-color: #5a7391;
+}
+
+.console-enter:active {
+  background-color: #3e5066;
+}
+
+/* Media query for smaller screens 
+@media (max-width: 680px) {
+  .console {
+    width: 80%;
+    
+  }
+}  */
