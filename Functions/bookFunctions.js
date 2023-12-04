@@ -5,6 +5,27 @@ if (typeof current_page == 'undefined') {
   window.current_page = current_page;
 }
 
+
+
+
+function parseJSONString(jsonString) {
+  try {
+    const obj = JSON.parse(jsonString);
+    // If jsonString is a valid JSON, return the parsed object
+    return obj;
+  } catch (error) {
+    // If jsonString is not a valid JSON, log an error or handle it
+    console.error("String is not a valid JSON:", error);
+    return null;
+  }
+}
+
+
+
+
+
+
+
 function book() {
   outputField.innerHTML = "";
   if (bookOfPages.hasOwnProperty("list")) {
@@ -17,6 +38,13 @@ function book() {
     } else if (input == "edit page" && current_page != "book") { // IF EDITIING CURRENT PAGE TEXT
       x = "edit page";
       newLine("Please enter the new Text for this page.")
+      lowerCaseInput = false;
+    } else if (input == "save") {
+      let save = JSON.stringify(bookOfPages);
+      outputField.innerHTML = save;
+    } else if (input == "load") {
+      newLine("Please enter the text to Load and press enter.");
+      x = "load";
       lowerCaseInput = false;
     } else if (input == "delete page" && current_page != "book") { // IF DELETING CURRENT PAGE
       x = "delete page";
@@ -79,6 +107,19 @@ function book() {
         }
       }
     
+    } else if (x == "load") {
+      if (parseJSONString(input)) {
+        bookOfPages = parseJSONString(input);
+        lowerCaseInput = true;
+        outputField.style.textAlign = "center";
+        outputField.innerHTML = `<h1>book</h1><hr>${bookOfPages["book"]}`;
+        current_page = "book";
+        x = 0;
+      } else {
+        x = 0;
+        outputField.style.textAlign = "center";
+        outputField.innerHTML = `<h1>Error loading text</h1><hr>Please press Back to resume to your last page.`;
+      }
     } else if (x == "edit page") {
       bookOfPages[current_page] = input;
       lowerCaseInput = true;
@@ -91,6 +132,10 @@ function book() {
         outputField.style.textAlign = "center";
         outputField.innerHTML = `<h1>book</h1><hr>${bookOfPages["book"]}`;
         x = 0;
+      } else if (input == 2 || input == "no") {
+        x = 0;
+        outputField.style.textAlign = "center";
+        outputField.innerHTML = `<h1>Deleting Cancelled</h1><hr>Please press Back to resume to your last page.`;
       }
     }
   }
