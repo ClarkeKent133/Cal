@@ -8,6 +8,15 @@ let activeFunction = "";
 let x = 0;
 let y = 0;
 let z = 0;
+let canvasAnimating = false;
+
+keys = {
+  'a' : false,
+  's' : false,
+  'd' : false,
+  'w' : false,
+  ' ' : false
+};
 
 const functionList = [
   "clear",
@@ -49,7 +58,9 @@ enterButton.addEventListener('click', () => {
       window[activeFunction]();
     }
   }
-  inputField.focus();
+  if (input != 'canvas') {
+    inputField.focus();
+  }
 });
 
 function addFunctionHTML(parentID, sourceID) {
@@ -100,6 +111,8 @@ function finishFunction () {
   x = 0;
   y = 0;
   z = 0;
+  canvasAnimating = false;
+  
 }
 
 
