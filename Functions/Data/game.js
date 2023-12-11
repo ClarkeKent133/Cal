@@ -1,10 +1,6 @@
 // VARIABLE DECLERATION ->
 
-if (typeof canvasWidth == 'undefined') {
-  let canvasWidth;
-  let canvasHeight;
-  let canvas;
-  let c;
+if (typeof data == 'undefined') {
   let data;
   let playerSpeed;
 }
@@ -72,25 +68,16 @@ class TopDownObj {
 // <- OBJ CLASS
 
 
-function canvas() {
+function game() {
   
-  // CONSTRUCTING CANVAS ->
+  // OPENING CANVAS ->
   
-  canvasWidth = outputField.getBoundingClientRect().width - 20;
-  canvasHeight = outputField.getBoundingClientRect().height - 25;
+  openCanvas();
   
-  if (input == 'canvas') {
-    outputField.innerHTML = `<canvas id='canvas' width='${canvasWidth}px' height='${canvasHeight}'></canvas>`;
-    animationStarted = false;
-  }
   
-  /** @type {HTMLCanvasElement} */
-  canvas = document.querySelector("#canvas");
-  c = canvas.getContext('2d');
+  // <- OPENING CANVAS
   
-  // <- CONSTRUCTING CANVAS
-  
-  if (input == 'canvas') {
+  if (input == 'game') { // IF FUNCTION NAME CHANGES SO DOES THIS !!!!!!!!!!!!!!!!
     data = [];
     playerSpeed = 3;
     const player = new TopDownObj(0, 0, 20, 20, 'player', false, '');
@@ -102,7 +89,8 @@ function canvas() {
     canvasAnimating = true;
     animate();
   }
-  
+  clear();
+  newLine("Welcome to the Game!");
 }
 
 window.addEventListener('keydown', (e) => {
@@ -149,4 +137,4 @@ function animate() {
 }
 
 
-canvas();
+game();

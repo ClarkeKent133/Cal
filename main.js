@@ -1,6 +1,8 @@
 const outputField = document.querySelector('.console-output');
+const canvasField = document.querySelector('.canvas-area');
 const inputField = document.querySelector('.console-input');
 const enterButton = document.querySelector('.console-enter');
+const topArea = document.querySelector('.top');
 
 let input = "";
 let lowerCaseInput = true;
@@ -9,6 +11,10 @@ let x = 0;
 let y = 0;
 let z = 0;
 let canvasAnimating = false;
+let canvasWidth;
+let canvasHeight;
+let canvas;
+let c;
 
 keys = {
   'a' : false,
@@ -21,7 +27,7 @@ keys = {
 const functionList = [
   "clear",
   "book",
-  "canvas"
+  "game"
 ];
 
 const responceList = {
@@ -39,8 +45,10 @@ enterButton.addEventListener('click', () => {
       input = inputField.value;
     }
     inputField.value = "";
-    if (input == "clear" || input == "exit") {
-      clear()
+    if (input == "exit") {
+      finishFunction();
+    } else if (input == "clear") {
+      clear();
     } else if (input == "check") {
       console.log(document.querySelector('body'))
     } else if (activeFunction == "") {
@@ -112,7 +120,11 @@ function finishFunction () {
   y = 0;
   z = 0;
   canvasAnimating = false;
-  
+  outputField.style.height = `calc(100% - 20px)`;
+  topArea.style.flexDirection = 'column'
+  canvasField.style.display = 'none';
+  clear();
+  newLine("Hi i'm Cal. Please type 'help' for more information.");
 }
 
 
@@ -125,10 +137,34 @@ function finishFunction () {
 function clear() {
   input = "";
   outputField.innerHTML = "";
-  newLine("Hi i'm Cal. Please type 'help' for more information.");
-  finishFunction();
 }
+
+function openCanvas() {
+  inputField.blur();
+  canvasWidth = Math.round(outputField.getBoundingClientRect().width - 20);
+  canvasHeight = Math.round(outputField.getBoundingClientRect().height - 20);
+    
+  if (canvasHeight > canvasWidth) {
+    canvasHeight = canvasWidth;
+    outputField.style.height = `calc(100% - ${canvasHeight}px - 50px)`;
+  } else {
+    canvasWidth = canvasHeight;
+    topArea.style.flexDirection = 'row';
+    canvasField.style.marginRight = '10px';
+  }
+  canvasField.style.height = `${canvasHeight}px`;
+  canvasField.style.width = `${canvasWidth}px`;
+  canvasField.innerHTML = `<canvas id='canvas' width='${canvasWidth}px' height='${canvasHeight}px style="image-rendering: pixelated;"'></canvas>`;
+  canvasField.style.display = 'block';
+  animationStarted = false;
+  /** @type {HTMLCanvasElement} */
+  canvas = document.querySelector("#canvas");
+  c = canvas.getContext('2d');
+  c.imageSmoothingEnabled = false;
+}
+
+
 
 // ON STARTUP
 
-clear();
+finishFunction();

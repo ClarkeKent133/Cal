@@ -36,20 +36,35 @@ body {
   transition: width 0.3s ease-in-out; /* Smooth transition for resizing */
 }
 
+.top {
+  height: calc(100% - 70px);
+  display: flex;
+  flex-direction: column;
+}
 .console-output {
-  height: calc(100% - 90px);
+  height: calc(100% - 20px);
   overflow-y: auto;
   background-color: #12232e;
-  margin-bottom: 10px;
   padding: 10px;
   border-radius: 5px;
   white-space: pre-wrap;
   box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+  flex-grow: 1;
+}
+
+
+.canvas-area {
+  border: black solid 10px;
+  border-radius: 5px;
+  display: none;
+  padding: 0px;
+  margin-bottom: 10px;
 }
 
 .input-area {
   display: flex; /* Align items in a row */
   align-items: stretch; /* Align the height of button and input */
+  margin-top: 10px;
 }
 
 .console-output::-webkit-scrollbar {
@@ -60,6 +75,7 @@ body {
   background: #4d648d;
   border-radius: 4px;
 }
+
 
 .console-input {
   width: calc(100% - 120px);
@@ -103,4 +119,4 @@ body {
     width: 80%;
     
   }
-}  */
+}  TOP ISSUE AS NOT LONG ENOUGH OR MARGIN ISSUE*/
