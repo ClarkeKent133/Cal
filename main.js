@@ -16,18 +16,30 @@ let canvasHeight;
 let canvas;
 let c;
 
-keys = {
+const keys = {
   'a' : false,
   's' : false,
   'd' : false,
   'w' : false,
-  ' ' : false
+  ' ' : false,
+  'leftMouse' : false,
+  'mousePos' : {
+    x : 0,
+    y : 0
+  }
 };
+
+const spriteSheets  = {
+  "blackBorder" : newImage("/SpriteSheets/blackBorder.png"),
+  "water" : newImage("/SpriteSheets/water.png"),
+  "grass" : newImage("/SpriteSheets/grass.png")
+}
 
 const functionList = [
   "clear",
   "book",
-  "game"
+  "game",
+  "mapmaker"
 ];
 
 const responceList = {
@@ -66,9 +78,6 @@ enterButton.addEventListener('click', () => {
       window[activeFunction]();
     }
   }
-  if (input != 'canvas') {
-    inputField.focus();
-  }
 });
 
 function addFunctionHTML(parentID, sourceID) {
@@ -83,6 +92,12 @@ function addDataHTML(parentID, sourceID) {
   script.src = `./Functions/Data/${sourceID}.js`;
   script.id = sourceID;
   document.querySelector(`#${parentID}`).appendChild(script);
+}
+
+function newImage(imageSource) {
+  let img = new Image();
+  img.src = imageSource;
+  return img;
 }
 
 
@@ -127,7 +142,48 @@ function finishFunction () {
   newLine("Hi i'm Cal. Please type 'help' for more information.");
 }
 
-
+window.addEventListener('keydown', (e) => {
+  let keypress = e.key;
+  if (keypress in keys) {
+    keys[keypress] = true;
+  }
+})
+window.addEventListener('mousedown', (e) => {
+  keys['leftMouse'] = true;
+})
+window.addEventListener('touchstart', () => {
+  keys['leftMouse'] = true;
+})
+document.addEventListener('mousemove', (e) => {
+  if (canvasAnimating) {
+    var rect = canvas.getBoundingClientRect();
+    keys['mousePos'] = {
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    }
+  }
+})
+document.addEventListener('touchmove', (e) => {
+  if (canvasAnimating) {
+    var rect = canvas.getBoundingClientRect();
+    keys['mousePos'] = {
+      x: e.touches[0].clientX - rect.left,
+      y: e.touches[0].clientY - rect.top
+    }
+  }
+})
+window.addEventListener('keyup', (e) => {
+  let keypress = e.key;
+  if (keypress in keys) {
+    keys[keypress] = false;
+  }
+})
+window.addEventListener('mouseup', () => {
+  keys['leftMouse'] = false;
+})
+window.addEventListener('touchend', () => {
+  keys['leftMouse'] = false;
+})
 
 // CAL FUNCTIONS
 
@@ -157,7 +213,6 @@ function openCanvas() {
   canvasField.innerHTML = `<canvas id='canvas' width='${canvasWidth}px' height='${canvasHeight}px style="image-rendering: pixelated;"'></canvas>`;
   canvasField.style.display = 'block';
   animationStarted = false;
-  /** @type {HTMLCanvasElement} */
   canvas = document.querySelector("#canvas");
   c = canvas.getContext('2d');
   c.imageSmoothingEnabled = false;

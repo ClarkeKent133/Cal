@@ -93,19 +93,7 @@ function game() {
   newLine("Welcome to the Game!");
 }
 
-window.addEventListener('keydown', (e) => {
-  let keypress = e.key;
-  console.log(keypress)
-  if (keypress in keys) {
-    keys[keypress] = true;
-  }
-})
-window.addEventListener('keyup', (e) => {
-  let keypress = e.key;
-  if (keypress in keys) {
-    keys[keypress] = false;
-  }
-})
+
 
 function normalize(vector) {
   const magnitude = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
