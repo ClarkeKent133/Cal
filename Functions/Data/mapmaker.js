@@ -1,3 +1,6 @@
+// WHEN ADDING OBJECT TO SPRITE SHEET. ADD IT TO OBJECTS[] IN MAPMAKER() AND GRABOBJECT() CONST.
+// WHEN ADDING NEW MAP SPRITESHEET ADD IT TO TILES[] IN MAPMAKER() AND SPRITESHEETS{} IN MAIN.JS.
+
 // VARIABLE DECLERATION ->
 
 if (typeof data == 'undefined') {
@@ -5,6 +8,7 @@ if (typeof data == 'undefined') {
   let grid_size;
   let cell_size;
   let tiles;
+  let objects;
   let summary;
 }
 
@@ -24,7 +28,8 @@ class Cell {
     this.object = "";
     this.intX = intX;
     this.intY = intY;
-    this.spriteCutting = {};
+    this.spriteTileCutting = {};
+    this.spriteObjectCutting = {};
   }
   
   draw () {
@@ -32,10 +37,12 @@ class Cell {
     c.fillRect(this.position.x, this.position.y, cell_size, cell_size);
     if (this.tile != "") {
       if (cellAutoTiling(this.intX, this.intY) != false) {
-        this.spriteCutting = cellAutoTiling(this.intX, this.intY);
+        this.spriteTileCutting = cellAutoTiling(this.intX, this.intY);
       }
-      c.drawImage(spriteSheets[this.tile], this.spriteCutting.x * 16, this.spriteCutting.y * 16, 16, 16, this.position.x, this.position.y, this.width, this.width);
-      
+      c.drawImage(spriteSheets[this.tile], this.spriteTileCutting.x * 16, this.spriteTileCutting.y * 16, 16, 16, this.position.x, this.position.y, this.width, this.width);
+      if (this.object != "") {
+        c.drawImage(spriteSheets["objects"], this.spriteObjectCutting.x * 16, this.spriteObjectCutting.y * 16, 16, 16, this.position.x, this.position.y, this.width, this.width);
+      }
     }
   }
   
@@ -48,12 +55,21 @@ class Cell {
         } else if (y == "none") {
           this.tile = ""
         }
+      } else if (x == "Objects") {
+        if (y != 0 && y != "none") {
+          if (objects.includes(y)) {
+            this.object = y;
+            this.spriteObjectCutting = grabObject(y);
+          }
+        }  else if (y == "none") {
+          this.object = "";
+        }
       }
     }
   }
   
   save () {
-    let saveOutput = [this.tile, this.object, this.intX, this.intY, this.spriteCutting];
+    let saveOutput = [this.tile, this.object, this.intX, this.intY, this.spriteTileCutting, this.spriteObjectCutting];
     
     return saveOutput
   }
@@ -66,7 +82,8 @@ function mapmaker() {
   if (input == "mapmaker") {
     data = {};
     summary = 'As a summary of what the Map Maker is, this allows you to create by default 12x12 maps to use in your game. Maps are compromised of tiles which are not interactable and form the ground. Objects however cannot pass through each other and can be static or kinetic and form all functionality of the game.\n\nTo place either Objects or Tiles, simply enter your choice below as a command.\n\nThe list of all available Objects and Tiles are provided and you simply have to enter the name of your chosen type as a command to select it. It will then confirm the currently active Tile type or Object and you can tap or click the squares on the map to the left to place them. Each square on the map can contain only 1 Tile and only 1 Object. Objects are placed ontop of their Tile.\n\nTo Save the current map that you have created just enter the command Save and it will display the save data here and also copy it to your clipboard to use in your game.\n\nTo return to Cal just enter the command Exit.'
-    tiles = ["none", "blackBorder", "grass", "water"]
+    tiles = ["none", "blackBorder", "grass", "water"];
+    objects = ["none", "void", "flower", "house", "player"];
     openCanvas();
     grid_size = 12;
     cell_size = (canvasWidth - (grid_size + 1)) / grid_size;
@@ -92,6 +109,11 @@ function mapmaker() {
       lowerCaseInput = false;
       clear();
       newLine("Selected Type: Tiles\nSelected Tile: N/A\n\n" + generateTileList() + '\n\nTo return and use the other functionality you can enter the command Back.');
+    } else if (input == "objects") {
+      x = "Objects";
+      lowerCaseInput = false;
+      clear();
+      newLine("Selected Type: Objects\nSelected Object: N/A\n\n" + generateObjectList() + '\n\nTo return and use the other functionality you can enter the command Back.');
     } else if (input == "save") {
       let saveDataArray = []
       for (let i=0; i<Object.keys(data).length; i++) {
@@ -118,18 +140,36 @@ function mapmaker() {
     } else if (tiles.includes(input)) {
       y = input;
       clear();
-      newLine(`Selected Type: Tiles\n\nSelected Tile: ${y}\n\n` + generateTileList())
+      newLine(`Selected Type: Tiles\n\nSelected Tile: ${y}\n\n` + generateTileList() + '\n\nTo return and use the other functionality you can enter the command Back.')
     } else {
       clear();
-      newLine('Unkown Tile type, please try again or press Back to go back to the start.')
+      newLine('Unknown Tile type, please try again or press Back to go back to the start.');
     }
+  } else if (x == "Objects") {
+    lowerCaseInput = true;
+    if (input == "back") {
+      x = 0;
+      y = 0;
+      clear();
+      newLine('Welcome to the Map Maker !!');
+      newLine(summary);
+    } else if (objects.includes(input)) {
+      y = input;
+      clear();
+      newLine(`Selected Type: Objects\nSelected Object: ${y}\n\n` + generateObjectList() + '\n\nTo return and use the other functionality you can enter the command Back.');
+    } else {
+      clear();
+      newLine("Unknown Object type, please try again or press Back to go back to the start.");
+    }
+    
   } else if (x == "Loading") {
     let parsedData = JSON.parse(input);
     for (let i=0; i<parsedData.length; i++) {
       let cellToSwap = data[`${parsedData[i][2]}x${parsedData[i][3]}`]
       cellToSwap.tile = parsedData[i][0];
       cellToSwap.object = parsedData[i][1];
-      cellToSwap.spriteCutting = parsedData[i][4];
+      cellToSwap.spriteTileCutting = parsedData[i][4];
+      cellToSwap.spriteObjectCutting = parsedData[i][5];
     }
     x = 0;
     clear()
@@ -144,6 +184,28 @@ function generateTileList() {
     output += `- ${tiles[i]}\n`
   }
   return output;
+}
+
+function generateObjectList() {
+  let output = "All Objects:\n";
+  for (let i = 0; i < objects.length; i++) {
+    output += `- ${objects[i]}\n`
+  }
+  return output;
+}
+
+function grabObject(obj) {
+  const objectList = {
+    "void" : {x : 0, y : 0},
+    "flower" : {x : 1, y : 0},
+    "house" : {x : 2, y : 0},
+    "player" : {x : 3, y : 0}
+  }
+  if (obj in objectList) {
+    return objectList[obj];
+  } else {
+    return false;
+  }
 }
 
 
@@ -198,7 +260,7 @@ function cellAutoTiling(cellX, cellY) {
         hCode += "0";
       }
     } else {
-      hCode += "0";
+      hCode += "1";
     }
   }
   
@@ -210,7 +272,7 @@ function cellAutoTiling(cellX, cellY) {
         dCode += "0";
       }
     } else {
-      dCode += "0";
+      dCode += "1";
     }
   }
   

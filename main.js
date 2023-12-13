@@ -30,6 +30,7 @@ const keys = {
 };
 
 const spriteSheets  = {
+  "objects" : newImage("/SpriteSheets/objects.png"),
   "blackBorder" : newImage("/SpriteSheets/blackBorder.png"),
   "water" : newImage("/SpriteSheets/water.png"),
   "grass" : newImage("/SpriteSheets/grass.png")
@@ -39,7 +40,9 @@ const functionList = [
   "clear",
   "book",
   "game",
-  "mapmaker"
+  "mapmaker",
+  "dialogmaker",
+  "stormspire"
 ];
 
 const responceList = {
@@ -129,6 +132,7 @@ function checkResponces() {
 
 function finishFunction () {
   activeFunction = "";
+  input = "";
   document.querySelector('#main').innerHTML = '';
   outputField.style.textAlign = "left";
   x = 0;
@@ -191,7 +195,6 @@ window.addEventListener('touchend', () => {
 // CLEAR
 
 function clear() {
-  input = "";
   outputField.innerHTML = "";
 }
 
