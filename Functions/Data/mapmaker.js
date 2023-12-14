@@ -30,6 +30,7 @@ class Cell {
     this.intY = intY;
     this.spriteTileCutting = {};
     this.spriteObjectCutting = {};
+    this.dialogName = "";
   }
   
   draw () {
@@ -69,7 +70,7 @@ class Cell {
   }
   
   save () {
-    let saveOutput = [this.tile, this.object, this.intX, this.intY, this.spriteTileCutting, this.spriteObjectCutting];
+    let saveOutput = [this.tile, this.object, this.intX, this.intY, this.spriteTileCutting, this.spriteObjectCutting, this.dialogName];
     
     return saveOutput
   }
@@ -170,6 +171,7 @@ function mapmaker() {
       cellToSwap.object = parsedData[i][1];
       cellToSwap.spriteTileCutting = parsedData[i][4];
       cellToSwap.spriteObjectCutting = parsedData[i][5];
+      cellToSwap.dialogName = parsedData[i][6];
     }
     x = 0;
     clear()

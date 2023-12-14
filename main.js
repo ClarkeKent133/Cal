@@ -36,12 +36,18 @@ const spriteSheets  = {
   "grass" : newImage("/SpriteSheets/grass.png")
 }
 
+const allDialogs = [
+  "unknown_dialog",
+  "test"
+  ]
+
 const functionList = [
   "clear",
   "book",
   "game",
   "mapmaker",
   "dialogmaker",
+  "gamemaker",
   "stormspire"
 ];
 
@@ -138,13 +144,18 @@ function finishFunction () {
   x = 0;
   y = 0;
   z = 0;
-  canvasAnimating = false;
-  outputField.style.height = `calc(100% - 20px)`;
-  topArea.style.flexDirection = 'column'
-  canvasField.style.display = 'none';
+  closeCanvas();
   clear();
   newLine("Hi i'm Cal. Please type 'help' for more information.");
 }
+
+function closeCanvas() {
+  canvasAnimating = false;
+  outputField.style.height = `calc(100% - 20px)`;
+  topArea.style.flexDirection = 'column';
+  canvasField.style.display = 'none';
+}
+
 
 window.addEventListener('keydown', (e) => {
   let keypress = e.key;
