@@ -1,10 +1,18 @@
+// WHEN I WANT TO INCLUDE A NEW MAP, ENSURE THE .JS FILE IS IN MAPDATA FOLDER AND THEN ADD DESCRIPTION IN GAMEMAKER().
+
 if (typeof data == 'undefined') { // VARIABLE DECLERATION
   let data;
   let mapsUsed;
-  let mapNo;
   let mapDescriptions;
   let objectUses;
   let waitForPlayerInput;
+  let mapPlacements;
+  let currentMap;
+  let usingObject;
+  let currentMapPlacement;
+  let currentTurn;
+  let playing;
+  let gameKeys;
 }
 
 
@@ -12,12 +20,25 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
 async function gamemaker () {
   if (x == 0) {
     if (input == "gamemaker") {
-      mapNo = 1;
+      playing = false;
+      gameKeys = {
+        "a": false,
+        "s": false,
+        "d": false,
+        "w": false
+      }
+      mapPlacements = {};
+      usingObject = false;
       mapsUsed = [];
       data = {};
       waitForPlayerInput = () => {};
       mapDescriptions = {
-        "map0" : "A baren field with a house and a single Player."
+        "map0" : "A baren field with a house and a single Player.",
+        "map1" : "The left side of the field",
+        "map2" : "The top side of a field with some flowers",
+        "map3" : "The Right side of a field with a house.",
+        "map4" : "The Bottom of the Map",
+        "map5" : "A narrow Stretch"
       }
       objectUses = {
       
@@ -33,6 +54,9 @@ async function gamemaker () {
     if (input == "add") {
       clear();
       showListOfMaps();
+    } else if (input == "play") {
+      clear();
+      play();
     }
   } else if (x == "addingMap") {
     if (y == 0) {
@@ -119,7 +143,12 @@ async function checkForDialog(mapID) {
     while (!condition) {
       try {
         let side = sides[i];
-        newLine(`Please Enter the Maps connecting to the ${side} of this one.\n\nTo do this it needs to be in a certain format like so:\n\n["Map25"]\n\nWhat this means is that when you go to the ${side} of this Map and Move 1 more, you will travel to the other side of Map25.\n\nHowever if you wanted to add some randomness you can add multiple Maps to the ${side} of this one and 1 of these will be chosen fairly at random. This would have the format like so:\n\n["Map25" , "Map30"]\n\nThis means that when you travel to the ${side} of this Map and Move 1 more, you have a 50% chance of going to the other side of Map25 and a 50% chance of going to the other side of Map30.\n\nIt is worth noting that you can add a map multiple times to increase it's chance and you can also add the current Map allowing a Map to create a new copy on that side.\n\nAlternativly if you do not want the ${side} side to connect to any Map. Just enter:\n\n[]`);
+        let mapList = "";
+        for (let i = 0; i < Object.keys(mapDescriptions).length; i++) {
+          let mapID = `map${i}`
+          mapList += `- Map${i} (${mapDescriptions[mapID]})\n`
+        }
+        newLine(`Please Enter the Maps connecting to the ${side} of this one.\n\nTo do this it needs to be in a certain format like so:\n\n["Map25"]\n\nWhat this means is that when you go to the ${side} of this Map and Move 1 more, you will travel to the other side of Map25.\n\nHowever if you wanted to add some randomness you can add multiple Maps to the ${side} of this one and 1 of these will be chosen fairly at random. This would have the format like so:\n\n["Map25" , "Map30"]\n\nThis means that when you travel to the ${side} of this Map and Move 1 more, you have a 50% chance of going to the other side of Map25 and a 50% chance of going to the other side of Map30.\n\nIt is worth noting that you can add a map multiple times to increase it's chance and you can also add the current Map allowing a Map to create a new copy on that side.\n\nAlternativly if you do not want the ${side} side to connect to any Map. Just enter:\n\n[]\n\nAll Maps to Use:\n\n` + mapList);
         await new Promise(resolve => { waitForPlayerInput = resolve; });
         data[mapID].push(JSON.parse(input));
         clear();
@@ -139,8 +168,14 @@ async function checkForDialog(mapID) {
 function loadMap (mapID, posX, posY, size) {
   
   let cellSize = size / 12;
+  let mapData
   
-  let mapData = data[mapID];
+  if (playing) {
+    mapData = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`];
+  } else {
+    mapData = data[mapID];
+  }
+  
   for (let i=0; i<144; i++) {
     c.drawImage(spriteSheets[mapData[i][0]], mapData[i][4].x * 16, mapData[i][4].y * 16, 16, 16, (posX + (mapData[i][2] * cellSize)), (posY + (mapData[i][3] * cellSize)), cellSize, cellSize);
     if (mapData[i][1] != "" && mapData[i][1] != "void") {
@@ -175,7 +210,7 @@ function showListOfMaps () {
   closeCanvas();
   let mapList = "";
   let usedMapList = ""
-  for (let i = 0; i < mapNo; i++) {
+  for (let i = 0; i < Object.keys(mapDescriptions).length; i++) {
     let mapID = `map${i}`
     mapList += `- Map${i} (${mapDescriptions[mapID]})\n`
   }
@@ -198,6 +233,307 @@ function gameHomepage() {
 }
 
 
+function play() {
+  
+  openCanvas();
+  
+  
+  currentMap = "";
+  for (let i=0; i < Object.keys(data).length; i++) {
+    let key = Object.keys(data)[i]
+    for (let cell=0; cell<144; cell++) {
+      if (data[key][cell][1] == "player1") {
+        currentMap = key;
+        break;
+      }
+    }
+    if (currentMap != "") {
+      break;
+    }
+  }
+  
+  currentTurn = "player1";
+  mapPlacements["0x0"] = JSON.parse(JSON.stringify(data[currentMap]));
+  currentMapPlacement = [0, 0];
+  playing = true;
+  loadMap("", 0, 0, canvasWidth);
+}
+
+window.addEventListener("keyup", (e) => {
+  let key = e.key;
+  if (key in gameKeys) {
+    gameKeys[key] = false;
+  }
+})
+
+window.addEventListener("keydown", (e) => {
+  if (playing) {
+    let key = e.key;
+    if (key == "a" && gameKeys["a"] == false) {
+      if (currentTurn == "player1" || currentTurn == "player2") {
+        if (!usingObject) {
+          let playerCell = returnObject(currentTurn)
+          objectMove({ x: playerCell[2], y: playerCell[3] }, [-1, 0])
+          gameKeys["a"] = true
+        }
+      }
+    }
+    if (key == "s" && gameKeys["s"] == false) {
+      if (currentTurn == "player1" || currentTurn == "player2") {
+        if (!usingObject) {
+          let playerCell = returnObject(currentTurn)
+          objectMove({ x: playerCell[2], y: playerCell[3] }, [0, 1])
+          gameKeys["s"] = true
+        }
+      }
+    }
+    if (key == "d" && gameKeys["d"] == false) {
+      if (currentTurn == "player1" || currentTurn == "player2") {
+        if (!usingObject) {
+          let playerCell = returnObject(currentTurn)
+          objectMove({ x: playerCell[2], y: playerCell[3] }, [1, 0])
+          gameKeys["d"] = true
+        }
+      }
+    }
+    if (key == "w" && gameKeys["w"] == false) {
+      if (currentTurn == "player1" || currentTurn == "player2") {
+        if (!usingObject) {
+          let playerCell = returnObject(currentTurn)
+          objectMove({ x: playerCell[2], y: playerCell[3] }, [0, -1])
+          gameKeys["w"] = true
+        }
+      }
+    }
+  }
+})
+
+function returnObject(objectName) {
+  // OBJECT NAME CAN BE ANY NAME LIKE PLAYER1 OR HOUSE. THIS WILL RETURN THE FIRST CELL WITH IT IN THE CURRENT MAP
+  for (let cell = 0; cell < 144; cell++) {
+    if (mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][cell][1] == objectName) {
+      return mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][cell];
+    }
+  }
+}
+
+function returnCell (cellX, cellY) {
+  return mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(cellY * 12) + cellX];
+}
 
 
-gamemaker();
+
+
+function objectMove(objSrc, direction) {
+  // OBJSRC IS THE {X : 2, Y : 3} FOR THE OBJECTS POSITION
+  // DIRECTION = [1, 0] TO MOVE RIGHT FOR EXAMPLE
+  let targetCell = { x: objSrc.x + direction[0], y: objSrc.y + direction[1] }
+  if (targetCell.x < 12 && targetCell.y < 12 && targetCell.x > -1 && targetCell.y > -1) { // IF MOVING TO A VALID SQAURE INSIDE MAP
+    if (returnCell(targetCell.x, targetCell.y)[1] == "") { // IF THERE IS NO OBJECT AT TARGET CELL
+      let newCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(targetCell.y * 12) + targetCell.x];
+      let oldCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(objSrc.y * 12) + objSrc.x];
+      newCell[1] = oldCell[1];
+      oldCell[1] = "";
+      newCell[5] = oldCell[5]
+      oldCell[5] = {};
+      newCell[6] = oldCell[6];
+      oldCell[6] = "";
+    }
+  } else {
+    // IF TRYING TO MOVE OUTSIDE MAP
+    if (direction[0] == -1 && direction[1] == 0) { // IF GOING LEFT
+      if (`${currentMapPlacement[0] + direction[0]}x${currentMapPlacement[1] + direction[1]}` in mapPlacements) {
+        // IF MOVING LEFT INTO MAP THAT ALREADY EXISTS
+        let oldCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(objSrc.y * 12) + objSrc.x];
+        let tempX = currentMapPlacement[0];
+        let tempY = currentMapPlacement[1];
+        currentMapPlacement = [tempX + direction[0], tempY + direction[1]]
+        if (returnCell(11, objSrc.y)[1] == "") {
+          // IF THERE IS NO OBJECT AT TARGET CELL ON NEXT MAP ON RIGHT SIDE
+          let targetCell = { x: 11, y: objSrc.y }
+          let newCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(targetCell.y * 12) + targetCell.x];
+          newCell[1] = oldCell[1];
+          oldCell[1] = "";
+          newCell[5] = oldCell[5]
+          oldCell[5] = {};
+          newCell[6] = oldCell[6];
+          oldCell[6] = "";
+        }
+        loadMap("", 0, 0, canvasWidth);
+      } else {
+        // IF MOVING LEFT INTO MAP THAT DOESNT EXIST YET
+        let mapData = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`];
+        if (mapData[147].length > 0) {
+          let oldCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(objSrc.y * 12) + objSrc.x];
+          currentMap = mapData[147][Math.floor(Math.random() * mapData[147].length)];
+          mapPlacements[`${currentMapPlacement[0] + direction[0]}x${currentMapPlacement[1] + direction[1]}`] = JSON.parse(JSON.stringify(data[currentMap]));
+          let tempX = currentMapPlacement[0];
+          let tempY = currentMapPlacement[1];
+          currentMapPlacement = [tempX + direction[0], tempY + direction[1]]
+          
+          if (returnCell(11, objSrc.y)[1] == "") { 
+            // IF THERE IS NO OBJECT AT TARGET CELL ON NEXT MAP ON RIGHT SIDE
+            let targetCell = { x : 11, y : objSrc.y }
+            let newCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(targetCell.y * 12) + targetCell.x];
+            newCell[1] = oldCell[1];
+            oldCell[1] = "";
+            newCell[5] = oldCell[5]
+            oldCell[5] = {};
+            newCell[6] = oldCell[6];
+            oldCell[6] = "";
+          }
+          loadMap("", 0, 0, canvasWidth);
+        }
+      }
+    } else if (direction[0] == 1 && direction[1] == 0) {  // IF GOING RIGHT
+      if (`${currentMapPlacement[0] + direction[0]}x${currentMapPlacement[1] + direction[1]}` in mapPlacements) {
+        // IF MOVING RIGHT INTO MAP THAT ALREADY EXISTS
+        let oldCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(objSrc.y * 12) + objSrc.x];
+        let tempX = currentMapPlacement[0];
+        let tempY = currentMapPlacement[1];
+        currentMapPlacement = [tempX + direction[0], tempY + direction[1]]
+        if (returnCell(0, objSrc.y)[1] == "") {
+          // IF THERE IS NO OBJECT AT TARGET CELL ON NEXT MAP ON LEFT SIDE
+          let targetCell = { x: 0, y: objSrc.y }
+          let newCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(targetCell.y * 12) + targetCell.x];
+          newCell[1] = oldCell[1];
+          oldCell[1] = "";
+          newCell[5] = oldCell[5]
+          oldCell[5] = {};
+          newCell[6] = oldCell[6];
+          oldCell[6] = "";
+        }
+        loadMap("", 0, 0, canvasWidth);
+      } else {
+        // IF MOVING RIGHT INTO MAP THAT DOESNT EXIST YET
+        let mapData = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`];
+        if (mapData[145].length > 0) {
+          let oldCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(objSrc.y * 12) + objSrc.x];
+          currentMap = mapData[145][Math.floor(Math.random() * mapData[145].length)];
+          mapPlacements[`${currentMapPlacement[0] + direction[0]}x${currentMapPlacement[1] + direction[1]}`] = JSON.parse(JSON.stringify(data[currentMap]));
+          let tempX = currentMapPlacement[0];
+          let tempY = currentMapPlacement[1];
+          currentMapPlacement = [tempX + direction[0], tempY + direction[1]]
+    
+          if (returnCell(0, objSrc.y)[1] == "") {
+            // IF THERE IS NO OBJECT AT TARGET CELL ON NEXT MAP ON LEFT SIDE
+            let targetCell = { x: 0, y: objSrc.y }
+            let newCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(targetCell.y * 12) + targetCell.x];
+            newCell[1] = oldCell[1];
+            oldCell[1] = "";
+            newCell[5] = oldCell[5]
+            oldCell[5] = {};
+            newCell[6] = oldCell[6];
+            oldCell[6] = "";
+          }
+          loadMap("", 0, 0, canvasWidth);
+        }
+      }
+    } else if (direction[0] == 0 && direction[1] == -1) { // IF GOING UP
+       if (`${currentMapPlacement[0] + direction[0]}x${currentMapPlacement[1] + direction[1]}` in mapPlacements) {
+         // IF MOVING UP INTO MAP THAT ALREADY EXISTS
+         let oldCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(objSrc.y * 12) + objSrc.x];
+         let tempX = currentMapPlacement[0];
+         let tempY = currentMapPlacement[1];
+         currentMapPlacement = [tempX + direction[0], tempY + direction[1]]
+         if (returnCell(objSrc.x, 11)[1] == "") {
+           // IF THERE IS NO OBJECT AT TARGET CELL ON NEXT MAP ON BOTTOM SIDE
+           let targetCell = { x: objSrc.x, y: 11 }
+           let newCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(targetCell.y * 12) + targetCell.x];
+           newCell[1] = oldCell[1];
+           oldCell[1] = "";
+           newCell[5] = oldCell[5]
+           oldCell[5] = {};
+           newCell[6] = oldCell[6];
+           oldCell[6] = "";
+         }
+         loadMap("", 0, 0, canvasWidth);
+       } else {
+         // IF MOVING UP INTO MAP THAT DOESNT EXIST YET
+         let mapData = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`];
+         if (mapData[144].length > 0) {
+           let oldCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(objSrc.y * 12) + objSrc.x];
+           currentMap = mapData[144][Math.floor(Math.random() * mapData[144].length)];
+           mapPlacements[`${currentMapPlacement[0] + direction[0]}x${currentMapPlacement[1] + direction[1]}`] = JSON.parse(JSON.stringify(data[currentMap]));
+           let tempX = currentMapPlacement[0];
+           let tempY = currentMapPlacement[1];
+           currentMapPlacement = [tempX + direction[0], tempY + direction[1]]
+    
+           if (returnCell(objSrc.x, 11)[1] == "") {
+             // IF THERE IS NO OBJECT AT TARGET CELL ON NEXT MAP ON BOTTOM SIDE
+             let targetCell = { x: objSrc.x, y: 11 }
+             let newCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(targetCell.y * 12) + targetCell.x];
+             newCell[1] = oldCell[1];
+             oldCell[1] = "";
+             newCell[5] = oldCell[5]
+             oldCell[5] = {};
+             newCell[6] = oldCell[6];
+             oldCell[6] = "";
+           }
+           loadMap("", 0, 0, canvasWidth);
+         }
+       }
+     } else if (direction[0] == 0 && direction[1] == 1) { // IF GOING DOWN
+        if (`${currentMapPlacement[0] + direction[0]}x${currentMapPlacement[1] + direction[1]}` in mapPlacements) {
+          // IF MOVING DOWN INTO MAP THAT ALREADY EXISTS
+          let oldCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(objSrc.y * 12) + objSrc.x];
+          let tempX = currentMapPlacement[0];
+          let tempY = currentMapPlacement[1];
+          currentMapPlacement = [tempX + direction[0], tempY + direction[1]]
+          if (returnCell(objSrc.x, 0)[1] == "") {
+            // IF THERE IS NO OBJECT AT TARGET CELL ON NEXT MAP ON TOP SIDE
+            let targetCell = { x: objSrc.x, y: 0 }
+            let newCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(targetCell.y * 12) + targetCell.x];
+            newCell[1] = oldCell[1];
+            oldCell[1] = "";
+            newCell[5] = oldCell[5]
+            oldCell[5] = {};
+            newCell[6] = oldCell[6];
+            oldCell[6] = "";
+          }
+          loadMap("", 0, 0, canvasWidth);
+        } else {
+          // IF MOVING DOWN INTO MAP THAT DOESNT EXIST YET
+          let mapData = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`];
+          if (mapData[146].length > 0) {
+            let oldCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(objSrc.y * 12) + objSrc.x];
+            currentMap = mapData[146][Math.floor(Math.random() * mapData[146].length)];
+            mapPlacements[`${currentMapPlacement[0] + direction[0]}x${currentMapPlacement[1] + direction[1]}`] = JSON.parse(JSON.stringify(data[currentMap]));
+            let tempX = currentMapPlacement[0];
+            let tempY = currentMapPlacement[1];
+            currentMapPlacement = [tempX + direction[0], tempY + direction[1]]
+     
+            if (returnCell(objSrc.x, 0)[1] == "") {
+              // IF THERE IS NO OBJECT AT TARGET CELL ON NEXT MAP ON TOP SIDE
+              let targetCell = { x: objSrc.x, y: 0 }
+              let newCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][(targetCell.y * 12) + targetCell.x];
+              newCell[1] = oldCell[1];
+              oldCell[1] = "";
+              newCell[5] = oldCell[5]
+              oldCell[5] = {};
+              newCell[6] = oldCell[6];
+              oldCell[6] = "";
+            }
+            loadMap("", 0, 0, canvasWidth);
+          }
+        }
+      }
+  }
+  loadMap("", 0, 0, canvasWidth);
+  5, 6
+}
+
+function nextTurn() {
+  let turnList = ["player1", "AI"];
+  let i = turnList.indexOf(currentTurn);
+  if (i != (turnList.length - 1)) {
+    i ++
+  } else {
+    i = 0
+  }
+  currentTurn = turnList[i]
+}
+
+
+
+gamemaker(); 

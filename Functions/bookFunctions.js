@@ -37,8 +37,8 @@ function book() {
       newLine("Creating new page, please enter the title of the page");
     } else if (input == "edit page" && current_page != "book") { // IF EDITIING CURRENT PAGE TEXT
       x = "edit page";
-      newLine("Please enter the new Text for this page.")
       lowerCaseInput = false;
+      newLine("Please enter the new Text for this page.")
     } else if (input == "save") {
       let save = JSON.stringify(bookOfPages);
       outputField.innerHTML = save;

@@ -84,7 +84,7 @@ function mapmaker() {
     data = {};
     summary = 'As a summary of what the Map Maker is, this allows you to create by default 12x12 maps to use in your game. Maps are compromised of tiles which are not interactable and form the ground. Objects however cannot pass through each other and can be static or kinetic and form all functionality of the game.\n\nTo place either Objects or Tiles, simply enter your choice below as a command.\n\nThe list of all available Objects and Tiles are provided and you simply have to enter the name of your chosen type as a command to select it. It will then confirm the currently active Tile type or Object and you can tap or click the squares on the map to the left to place them. Each square on the map can contain only 1 Tile and only 1 Object. Objects are placed ontop of their Tile.\n\nTo Save the current map that you have created just enter the command Save and it will display the save data here and also copy it to your clipboard to use in your game.\n\nTo return to Cal just enter the command Exit.'
     tiles = ["none", "blackBorder", "grass", "water"];
-    objects = ["none", "void", "flower", "house", "player"];
+    objects = ["none", "void", "flower", "house", "player1"];
     openCanvas();
     grid_size = 12;
     cell_size = (canvasWidth - (grid_size + 1)) / grid_size;
@@ -116,20 +116,26 @@ function mapmaker() {
       clear();
       newLine("Selected Type: Objects\nSelected Object: N/A\n\n" + generateObjectList() + '\n\nTo return and use the other functionality you can enter the command Back.');
     } else if (input == "save") {
-      let saveDataArray = []
-      for (let i=0; i<Object.keys(data).length; i++) {
-        let dataCell = data[Object.keys(data)[i]];
-        saveDataArray.push(dataCell.save())
-      }
-      let saveData = JSON.stringify(saveDataArray);
+      x = "saving";
       clear();
-      newLine(`Saved Data copied to Clipboard:\n\n` + saveData);
-      navigator.clipboard.writeText(saveData);
+      newLine("Please enter the name you would like this map to be.\n\nThis is usually something like map15 or map27.");
     } else if (input == "load") {
       clear();
       newLine("Please enter the Data to Load into the box below as a command and hit Enter.");
       x = "Loading";
     }
+  } else if (x == "saving") {
+    
+    let saveDataArray = []
+    for (let i = 0; i < Object.keys(data).length; i++) {
+      let dataCell = data[Object.keys(data)[i]];
+      saveDataArray.push(dataCell.save())
+    }
+    let saveData = `var ${input} = ` + JSON.stringify(saveDataArray);
+    clear();
+    newLine(`Saved Data copied to Clipboard:\n\n` + saveData);
+    navigator.clipboard.writeText(saveData);
+    
   } else if (x == "Tiles") {
     lowerCaseInput = true;
     if (input == "back") {
@@ -201,7 +207,7 @@ function grabObject(obj) {
     "void" : {x : 0, y : 0},
     "flower" : {x : 1, y : 0},
     "house" : {x : 2, y : 0},
-    "player" : {x : 3, y : 0}
+    "player1" : {x : 3, y : 0}
   }
   if (obj in objectList) {
     return objectList[obj];

@@ -1,5 +1,17 @@
-100% - 90px
+Several Dialog Features to add, all of which the Tracker skips them as these happen instantly and behind the scenes:
 
-canvasWidth + 10px + y = 90px
+- Travel ( String ) ( Changes the prefix for the mapPlacements to add String to the front of the "0x0" so that you can travel to a completely new area seperate from teh rest and its saved. If you do travel a second time with a different String then the prefix changes to String2. Also if you Travel and already have that prefix you go back to no prefix and your previous map and previous position.
 
+- Swap (Obj1, Obj2, Dialog) ( Swaps all instances of Obj1 with Obj2 and changes their dialog to Dialog )
 
+- Give ( String , Quant ) ( If String matches the name of an Object, it adds Quant amount to your inventory. If it does not it checks if there is a gloval variable with that name and if so increases its value by Quant. If not then it creates a global variable with that name and gives it value quant. )
+
+- Remove ( String , Quant ) ( If String matches the name of an Object in your inventory, it removes Quant amount and cannot go below 0. If it does not match an Object in your inventory, it checks global variables and if it matches it reduces it by Quant but not below 0. Otherwise it does nothing. )
+
+ - Count ( String , Quant , DialogIDIfTrue, DialogIDIfFalse) ( If String matches the name of an Object in the players inventory, it checks if they have at least Quant of it, if they do then Dialog will go to DialogIDIfTrue, otherwise it will go to DialogIDIfFalse. The same is true for global Variables. It checks if there is at least Quant of it. So if Quant is 4, and you have 4, it runs true.
+ 
+ - Destroy ( Deletes the Object from the Map).
+ 
+ - End ( Ends the Dialog ).
+ 
+ Also i want to add the ability so that in Speech Narrator and Text, you can have ${Global Variable Name} and it is replaced with its value.

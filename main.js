@@ -211,8 +211,8 @@ function clear() {
 
 function openCanvas() {
   inputField.blur();
-  canvasWidth = Math.round(outputField.getBoundingClientRect().width - 20);
-  canvasHeight = Math.round(outputField.getBoundingClientRect().height - 20);
+  canvasWidth = Math.round((outputField.getBoundingClientRect().width - 20));
+  canvasHeight = Math.round((outputField.getBoundingClientRect().height - 20));
     
   if (canvasHeight > canvasWidth) {
     canvasHeight = canvasWidth;
