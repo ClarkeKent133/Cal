@@ -6,6 +6,9 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
   let mapDescriptions;
   let objectUses;
   let waitForPlayerInput;
+  let dialogsData;
+  let currentDialog;
+  let dialogTracker;
   let mapPlacements;
   let currentMap;
   let usingObject;
@@ -13,6 +16,7 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
   let currentTurn;
   let playing;
   let gameKeys;
+  let facingDirection;
 }
 
 
@@ -25,12 +29,17 @@ async function gamemaker () {
         "a": false,
         "s": false,
         "d": false,
-        "w": false
+        "w": false,
+        "e": false
       }
       mapPlacements = {};
       usingObject = false;
       mapsUsed = [];
+      currentDialog = "";
+      dialogTracker = 1;
       data = {};
+      dialogsData = {};
+      facingDirection = [0 , 0];
       waitForPlayerInput = () => {};
       mapDescriptions = {
         "map0" : "A baren field with a house and a single Player.",
@@ -55,8 +64,10 @@ async function gamemaker () {
       clear();
       showListOfMaps();
     } else if (input == "play") {
-      clear();
-      play();
+      if (Object.keys(data).length > 0) {
+        clear();
+        play();
+      }
     }
   } else if (x == "addingMap") {
     if (y == 0) {
@@ -232,6 +243,27 @@ function gameHomepage() {
   y = 0;
 }
 
+async function loadDialogData(dialogName) {
+  await loadDialogFromFile(dialogName)
+    .then(() => {
+      dialogsData[dialogName] = window[dialogName]
+      document.querySelector(`#${dialogName}`).remove();
+    })
+    .catch(error => {
+      console.error('Error loading dialog:', error);
+    });
+}
+
+function loadDialogFromFile(dialogName) {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = `../Dialogs/${dialogName}.js`;
+    script.id = dialogName;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Failed to load script ${dialogName}.js`));
+    document.head.appendChild(script);
+  });
+}
 
 function play() {
   
@@ -259,6 +291,9 @@ function play() {
   loadMap("", 0, 0, canvasWidth);
 }
 
+
+
+
 window.addEventListener("keyup", (e) => {
   let key = e.key;
   if (key in gameKeys) {
@@ -274,6 +309,7 @@ window.addEventListener("keydown", (e) => {
         if (!usingObject) {
           let playerCell = returnObject(currentTurn)
           objectMove({ x: playerCell[2], y: playerCell[3] }, [-1, 0])
+          direction = [-1, 0];
           gameKeys["a"] = true
         }
       }
@@ -282,7 +318,8 @@ window.addEventListener("keydown", (e) => {
       if (currentTurn == "player1" || currentTurn == "player2") {
         if (!usingObject) {
           let playerCell = returnObject(currentTurn)
-          objectMove({ x: playerCell[2], y: playerCell[3] }, [0, 1])
+          objectMove({ x: playerCell[2], y: playerCell[3] }, [0, 1]);
+          direction = [0, 1];
           gameKeys["s"] = true
         }
       }
@@ -291,7 +328,8 @@ window.addEventListener("keydown", (e) => {
       if (currentTurn == "player1" || currentTurn == "player2") {
         if (!usingObject) {
           let playerCell = returnObject(currentTurn)
-          objectMove({ x: playerCell[2], y: playerCell[3] }, [1, 0])
+          objectMove({ x: playerCell[2], y: playerCell[3] }, [1, 0]);
+          direction = [1, 0];
           gameKeys["d"] = true
         }
       }
@@ -300,13 +338,60 @@ window.addEventListener("keydown", (e) => {
       if (currentTurn == "player1" || currentTurn == "player2") {
         if (!usingObject) {
           let playerCell = returnObject(currentTurn)
-          objectMove({ x: playerCell[2], y: playerCell[3] }, [0, -1])
+          objectMove({ x: playerCell[2], y: playerCell[3] }, [0, -1]);
+          direction = [0, -1];
           gameKeys["w"] = true
+        }
+      }
+    }
+    if (key == "e" && gameKeys["e"] == false) {
+      if (currentTurn == "player1" || currentTurn == "player2") {
+        if (!usingObject) {
+          gameKeys["e"] = true;
+          let playerCell = returnObject(currentTurn);
+          let dialogFromCell = returnCell(playerCell[2] + direction[0], playerCell[3] + direction[1])[6];
+          currentDialog = dialogFromCell;
+          if (dialogFromCell != "") {
+            interact();
+            
+          }
         }
       }
     }
   }
 })
+
+
+async function interact () {
+  usingObject = true;
+  await loadDialogData(currentDialog);
+  outputField.style.textAlign = "center";
+  let output = "\n";
+  for (let j=0; j<dialogsData[currentDialog].length; j++) {
+    for (let i=0; i<dialogTracker; i++) {
+      if (dialogsData[currentDialog][i][0] == "speech") {
+        output += `<u>${dialogsData[currentDialog][i][1]}</u>\n${dialogsData[currentDialog][i][2]}\n\n`
+      }
+    }
+    if (dialogTracker < dialogsData[currentDialog].length) {
+      output += "<hr>\n<button class='dialogButton' onclick='progressDialog()'>Continue</button>";
+    } else {
+      output += "<hr>\n<button class='dialogButton' onclick='progressDialog()'>End Dialog</button>";
+    }
+    outputField.innerHTML = output;
+    output = "\n";
+    await new Promise(resolve => { waitForPlayerInput = resolve; });
+  }
+  outputField.innerHTML = "";
+  usingObject = false;
+  dialogTracker = 1;
+}
+
+function progressDialog() {
+  dialogTracker ++;
+  waitForPlayerInput();
+}
+
 
 function returnObject(objectName) {
   // OBJECT NAME CAN BE ANY NAME LIKE PLAYER1 OR HOUSE. THIS WILL RETURN THE FIRST CELL WITH IT IN THE CURRENT MAP

@@ -14,4 +14,4 @@ Several Dialog Features to add, all of which the Tracker skips them as these hap
  
  - End ( Ends the Dialog ).
  
- Also i want to add the ability so that in Speech Narrator and Text, you can have ${Global Variable Name} and it is replaced with its value.
+ Also i want to add the ability so that in Speech Narrator and Text, you can have ${Global Variable Name} and it is replaced with its value. 

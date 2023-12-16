@@ -52,6 +52,15 @@ body {
   flex-grow: 1;
 }
 
+.dialogButton {
+  font-size: 1.5rem;
+  background-color: #4d648d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
 
 .canvas-area {
   border: black solid 10px;

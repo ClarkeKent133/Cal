@@ -44,9 +44,8 @@ function dialogmaker() {
         } else if (input == "choice") {
           newLine("Please enter how many choices you would like to provide.")
         } else if (input == "save") {
-          let saveData = JSON.stringify(data);
-          newLine("Here is the Save Data, this has also been copied to your clipboard.:\n\n" + saveData);
-          navigator.clipboard.writeText(saveData);
+          y = "saving";
+          newLine("What would you like to call the Save file?");
         } else if (input == "undo") {
           data.pop();
           loadActiveDialog()
@@ -83,6 +82,12 @@ function dialogmaker() {
           clear();
           newLine(`${input} is not a number.\n\nAt which point in this Dialog would you like to Jump to?\n\nJust enter the Number of the section in the Dialog.`);
         }
+      } else if (y == "saving") {
+        clear();
+        let saveData = JSON.stringify(data);
+        let toSave = `var ${input} = ${saveData}`
+        newLine("Here is the Save Data, this has also been copied to your clipboard.:\n\n" + toSave);
+        navigator.clipboard.writeText(toSave);
       } else if (y == "load") {
         data = JSON.parse(input);
         x = 1;
