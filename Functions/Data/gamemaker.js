@@ -9,6 +9,7 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
   let dialogsData;
   let currentDialog;
   let dialogTracker;
+  let dialogHistory;
   let mapPlacements;
   let currentMap;
   let usingObject;
@@ -36,7 +37,8 @@ async function gamemaker () {
       usingObject = false;
       mapsUsed = [];
       currentDialog = "";
-      dialogTracker = 1;
+      dialogHistory = [];
+      dialogTracker = 0;
       data = {};
       dialogsData = {};
       facingDirection = [0 , 0];
@@ -366,29 +368,73 @@ async function interact () {
   usingObject = true;
   await loadDialogData(currentDialog);
   outputField.style.textAlign = "center";
-  let output = "\n";
-  for (let j=0; j<dialogsData[currentDialog].length; j++) {
-    for (let i=0; i<dialogTracker; i++) {
-      if (dialogsData[currentDialog][i][0] == "speech") {
-        output += `<u>${dialogsData[currentDialog][i][1]}</u>\n${dialogsData[currentDialog][i][2]}\n\n`
+  dialogHistory = [];
+  dialogTracker  = 0;
+  while (usingObject) {
+    let output = "\n";
+    let jumping = false;
+    // ADDING CURRENT PART OF DIALOG BASED ON TRACKER TO THE DIALOG HISTORY
+    dialogHistory.push(dialogsData[currentDialog][dialogTracker])
+      //dialogHistory.push(["speech", ])
+    console.log(dialogHistory)
+    
+    // CREATING DIALOG BASED ON DIALOGHISTORY
+    for (let i=0; i<dialogHistory.length; i++) {
+      if (dialogHistory[i][0] == "speech") {
+        output += `<u>${dialogHistory[i][1]}</u>\n${dialogHistory[i][2]}\n\n`;
+      } else if (dialogHistory[i][0] == "choice") {
+        if (dialogHistory[i][1].length == 1) {
+          output += "<hr>\nChoice: " + dialogHistory[i][1][0][0] + "\n\n<hr>\n"
+        } else {
+          for (let j=0; j<dialogHistory[i][1].length; j++) {
+            output += `<button class='dialogButton' onclick='choiceDialog(${JSON.stringify(dialogHistory[i][1][j])})'>${dialogHistory[i][1][j][0]}</button>\n\n`
+          }
+        }
       }
     }
-    if (dialogTracker < dialogsData[currentDialog].length) {
-      output += "<hr>\n<button class='dialogButton' onclick='progressDialog()'>Continue</button>";
-    } else {
-      output += "<hr>\n<button class='dialogButton' onclick='progressDialog()'>End Dialog</button>";
+    
+    // ADDING BUTTONS TO END OF DIALOG BASED ON END OF DIALOG HISTORY
+    
+    if (dialogHistory[dialogHistory.length - 1][0] == "jump") {
+      dialogTracker = dialogHistory[dialogHistory.length - 1][1];
+      jumping = true;
     }
+    
+    if (dialogHistory[dialogHistory.length - 1][0] == "end") {
+      output += "<button class='dialogButton' onclick='endDialog()'>End Dialog</button>"
+    }
+    
+    if (dialogHistory[dialogHistory.length - 1][0] == "speech") {
+      if (dialogsData[currentDialog][dialogTracker + 1][0] != "end") {
+        output += "<button class='dialogButton' onclick='continueDialog()'>Continue</button>";
+      } else {
+        output += "<button class='dialogButton' onclick='endDialog()'>End Dialog</button>"
+      }
+    }
+    
     outputField.innerHTML = output;
-    output = "\n";
-    await new Promise(resolve => { waitForPlayerInput = resolve; });
+    
+    if (!jumping) {
+      await new Promise(resolve => { waitForPlayerInput = resolve; });
+    }
   }
   outputField.innerHTML = "";
-  usingObject = false;
-  dialogTracker = 1;
+  dialogTracker = 0;
 }
 
-function progressDialog() {
+function continueDialog() {
   dialogTracker ++;
+  waitForPlayerInput();
+}
+
+function choiceDialog (choiceArray) {
+  dialogHistory[(dialogHistory.length - 1)] = ["choice", [choiceArray]];
+  dialogTracker = choiceArray[1];
+  waitForPlayerInput();
+}
+
+function endDialog () {
+  usingObject = false;
   waitForPlayerInput();
 }
 

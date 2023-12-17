@@ -1,1 +1,1 @@
-var test = [["speech","Chloe","Hi im chloe"],["speech","Clarke","Hi im clarke"]]
+var test = [["speech","chloe","hi chloe from the future, how are you?"],["choice",[["not so great",2],["great thanks!",4]]],["speech","chloe","oh, im sorry that you arnt feeling so good."],["end"],["speech","chloe","thats good to hear !"],["jump",7],["end"],["speech","clarke","can i see this?"],["jump",0]]

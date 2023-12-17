@@ -8,7 +8,7 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
 
 function dialogmaker() {
   outputField.style.textAlign = "center";
-  const uses = ['speech', 'save', 'undo', 'choice', 'jump']
+  const uses = ['speech', 'save', 'undo', 'choice', 'jump', 'end']
   
   
   if (x == 0) { // DECIDING NEW OR LOADING DIALOG
@@ -41,6 +41,10 @@ function dialogmaker() {
           newLine("Please enter the name of who is speaking this dialog.");
         } else if (input == "jump") {
           newLine("At which point in this Dialog would you like to Jump to?\n\nJust enter the Number of the section in the Dialog.");
+        } else if (input == "end") {
+          data.push(["end"]);
+          loadActiveDialog();
+          y = 0;
         } else if (input == "choice") {
           newLine("Please enter how many choices you would like to provide.")
         } else if (input == "save") {
@@ -153,6 +157,8 @@ function loadActiveDialog () {
       dialog += "\n";
     } else if (data[i][0] == "jump") {
       dialog += `<b>${i}</b>\n<u>Jump</u>\nJump to Section ${data[i][1]}\n\n`;
+    } else if (data[i][0] == "end") {
+      dialog += `<b>${i}</b>\n<u>End</u>\n\n`
     }
   }
   newLine(dialog);
