@@ -1,1 +1,1 @@
-var test = [["speech","chloe","hi chloe from the future, how are you?"],["choice",[["not so great",2],["great thanks!",4]]],["speech","chloe","oh, im sorry that you arnt feeling so good."],["end"],["speech","chloe","thats good to hear !"],["jump",7],["end"],["speech","clarke","can i see this?"],["jump",0]]
+var test = [["speech","Dev","This is the beginning"],["add","flower",3],["speech","Dev","You now have 3 Flowers."],["count","flower",4,4,6],["speech","Dev","I guess this means It has worked as you have more than 2."],["end"],["speech","Dev","Something is broken"],["end"]]

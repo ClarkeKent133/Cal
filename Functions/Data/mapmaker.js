@@ -1,4 +1,4 @@
-// WHEN ADDING OBJECT TO SPRITE SHEET. ADD IT TO OBJECTS[] IN MAPMAKER() AND GRABOBJECT() CONST.
+// WHEN ADDING OBJECT TO SPRITE SHEET. ADD IT TO OBJECTS[] IN MAIN.JSAND GRABOBJECT() CONST.
 // WHEN ADDING NEW MAP SPRITESHEET ADD IT TO TILES[] IN MAPMAKER() AND SPRITESHEETS{} IN MAIN.JS.
 
 // VARIABLE DECLERATION ->
@@ -8,7 +8,6 @@ if (typeof data == 'undefined') {
   let grid_size;
   let cell_size;
   let tiles;
-  let objects;
   let summary;
 }
 
@@ -84,7 +83,6 @@ function mapmaker() {
     data = {};
     summary = 'As a summary of what the Map Maker is, this allows you to create by default 12x12 maps to use in your game. Maps are compromised of tiles which are not interactable and form the ground. Objects however cannot pass through each other and can be static or kinetic and form all functionality of the game.\n\nTo place either Objects or Tiles, simply enter your choice below as a command.\n\nThe list of all available Objects and Tiles are provided and you simply have to enter the name of your chosen type as a command to select it. It will then confirm the currently active Tile type or Object and you can tap or click the squares on the map to the left to place them. Each square on the map can contain only 1 Tile and only 1 Object. Objects are placed ontop of their Tile.\n\nTo Save the current map that you have created just enter the command Save and it will display the save data here and also copy it to your clipboard to use in your game.\n\nTo return to Cal just enter the command Exit.'
     tiles = ["none", "blackBorder", "grass", "water"];
-    objects = ["none", "void", "flower", "house", "player1"];
     openCanvas();
     grid_size = 12;
     cell_size = (canvasWidth - (grid_size + 1)) / grid_size;

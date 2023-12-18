@@ -28,7 +28,7 @@ const keys = {
     y : 0
   }
 };
-
+const objects = ["none", "void", "flower", "house", "player1"];
 const spriteSheets  = {
   "objects" : newImage("/SpriteSheets/objects.png"),
   "blackBorder" : newImage("/SpriteSheets/blackBorder.png"),

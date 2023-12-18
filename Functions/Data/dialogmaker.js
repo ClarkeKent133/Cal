@@ -8,7 +8,7 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
 
 function dialogmaker() {
   outputField.style.textAlign = "center";
-  const uses = ['speech', 'save', 'undo', 'choice', 'jump', 'end']
+  const uses = ['speech', 'save', 'undo', 'choice', 'jump', 'add', 'reduce', 'count', 'destroy', 'end']
   
   
   if (x == 0) { // DECIDING NEW OR LOADING DIALOG
@@ -23,6 +23,7 @@ function dialogmaker() {
       dialog = "";
       loadActiveDialog();
     } else if (input == "load") {
+      lowerCaseInput = false;
       clear();
       newLine("Please enter the Load data as a command below.");
       x = 1;
@@ -45,11 +46,24 @@ function dialogmaker() {
           data.push(["end"]);
           loadActiveDialog();
           y = 0;
+        } else if (input == "destroy") {
+          data.push(["destroy"]);
+          loadActiveDialog();
+          y = 0;
+        } else if (input == "count") {
+          newLine("Please enter either the Name of an Object in a Player's Inventory or of a Global Variable. This is what you will be checking.");
+          y = "count";
         } else if (input == "choice") {
           newLine("Please enter how many choices you would like to provide.")
         } else if (input == "save") {
           y = "saving";
           newLine("What would you like to call the Save file?");
+        } else if (input == "add") {
+          y = "add";
+          newLine("Please enter either the Name of an Object to add to the Player's Inventory, otherwise the Name of a  Global Variable to increase, If the Global Variable does not exist then one will be Created with this value.");
+        } else if (input == 'reduce') {
+          y = 'reduce';
+          newLine("Please enter either the Name of an Object to take away from a Player's Inventory, otherwise if you enter the Name of a Global Variable, its value will be reduced.\n\nA value cannot be reduced below 0 this way.")
         } else if (input == "undo") {
           data.pop();
           loadActiveDialog()
@@ -86,6 +100,58 @@ function dialogmaker() {
           clear();
           newLine(`${input} is not a number.\n\nAt which point in this Dialog would you like to Jump to?\n\nJust enter the Number of the section in the Dialog.`);
         }
+      } else if (y == "count") {
+        clear();
+        if (z == 0) {
+          newLine(`Please enter the amount of ${input} that you want to Check, If there is equal or more than this amount, then this will return True, otherwise it will return False.`)
+          data.push(["count", input])
+          z = 1;
+        } else if (z == 1) {
+          if (!isNaN(parseInt(input))) {
+            newLine(`Please enter the ID of the Dialog that you want to Jump to if this returns True`)
+            data[data.length - 1].push(parseInt(input));
+            z = 2;
+          }
+        } else if (z == 2) {
+          if (!isNaN(parseInt(input))) {
+            newLine(`Please enter the ID of the Dialog that you want to Jump to if this returns False`)
+            data[data.length - 1].push(parseInt(input));
+            z = 3;
+          } 
+        } else if (z == 3) {
+          if (!isNaN(parseInt(input))) {
+            data[data.length - 1].push(parseInt(input));
+            z = 0;
+            y = 0;
+            loadActiveDialog();
+          }
+        }
+      } else if (y == "add") {
+        clear();
+        if (z == 0) {
+          newLine(`Please enter the amount of ${input} that you want to either Add to the Player's Inventory or the Global Variable.`);
+          z = input;
+        } else {
+          if (!isNaN(parseInt(input))) {
+            data.push(["add", z, parseInt(input)]);
+            z = 0;
+            y = 0;
+            loadActiveDialog();
+          }
+        }
+      } else if (y == "reduce") {
+        clear();
+        if (z == 0) {
+          newLine(`Please enter the amount of ${input}  that you want to either remove from a Player's Inventory or reduce a Global Variable.`);
+          z = input;
+        } else {
+          if (!isNaN(parseInt(input))) {
+            data.push(["reduce", z, parseInt(input)]);
+            z = 0;
+            y = 0;
+            loadActiveDialog();
+          }
+        }
       } else if (y == "saving") {
         clear();
         let saveData = JSON.stringify(data);
@@ -97,6 +163,7 @@ function dialogmaker() {
         x = 1;
         y = 0;
         loadActiveDialog();
+        lowerCaseInput = true;
       } else if (y == "choice") {
         clear();
         if (z == 0) {
@@ -144,7 +211,7 @@ function makeDecision () {
 function loadActiveDialog () {
   clear();
   lowerCaseInput = true;
-  newLine("Here are the available Functions:\n\n- Speech (Used to enter a new speech)\n- Jump (This will jump you to a point in this dialog, this is the number above each element)\n- Choice (Used to create a choice for the reader to choose, doing so takes them to a certain point in this dialog the same way as 'Jump'.)\n- Save (This will provide the Save data for Current dialog for you to save manually)\n- Undo (This will undo the most recent addition to your Dialog)");
+  newLine("Here are the available Functions:\n\n- Speech (Used to enter a new speech)\n- Jump (This will jump you to a point in this dialog, this is the number above each element)\n- Choice (Used to create a choice for the reader to choose, doing so takes them to a certain point in this dialog the same way as 'Jump'.)\n- Save (This will provide the Save data for Current dialog for you to save manually)\n- Add (Either adds an Object to the player's Inventory, or adds to a Global Variable within the Dialog)\n- Reduce (Either reduces the amount of an Object in a player's Inventory, or reduces a Global Variable within the Dialog. Cannot reduce below 0)\n- Count (If the stated Object in a Player's Inventory or Global Variable is equal or Greater than the given Value, then Jump the Dialog to the ID given if true, otherwise Jump the Dialog to the ID if false)\n- Undo (This will undo the most recent addition to your Dialog)\n- Destroy (Removes the Object from the Map)\n- End (When a Dialog gets to this ID the dialog ends, the Dialog cannot end without it)");
   dialog = "";
   for (let i=0; i<data.length; i++) {
     if (data[i][0] == "speech") {
@@ -157,6 +224,14 @@ function loadActiveDialog () {
       dialog += "\n";
     } else if (data[i][0] == "jump") {
       dialog += `<b>${i}</b>\n<u>Jump</u>\nJump to Section ${data[i][1]}\n\n`;
+    } else if (data[i][0] == "add") {
+      dialog += `<b>${i}</b>\n<u>Add</u>\nAdding ${data[i][2]} to ${data[i][1]}\n\n`;
+    } else if (data[i][0] == "reduce") {
+      dialog += `<b>${i}</b>\n<u>Reduce</u>\nReducing ${data[i][2]} from ${data[i][1]}\n\n`;
+    } else if (data[i][0] == "destroy") {
+      dialog += `<b>${i}</b>\n<u>Destory</u>\n\n`
+    } else if (data[i][0] == "count") {
+      dialog += `<b>${i}</b>\n<u>Count</u>\nChecking if there is at least ${data[i][2]} of ${data[i][1]}\nIf True : ${data[i][3]}\nIf False : ${data[i][4]}\n\n`
     } else if (data[i][0] == "end") {
       dialog += `<b>${i}</b>\n<u>End</u>\n\n`
     }

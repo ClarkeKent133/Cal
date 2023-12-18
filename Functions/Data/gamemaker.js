@@ -17,6 +17,8 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
   let currentTurn;
   let playing;
   let gameKeys;
+  let globalVariables;
+  let inventory;
   let facingDirection;
 }
 
@@ -37,7 +39,9 @@ async function gamemaker () {
       usingObject = false;
       mapsUsed = [];
       currentDialog = "";
+      globalVariables = {};
       dialogHistory = [];
+      inventory = {};
       dialogTracker = 0;
       data = {};
       dialogsData = {};
@@ -180,7 +184,8 @@ async function checkForDialog(mapID) {
 
 function loadMap (mapID, posX, posY, size) {
   
-  let cellSize = size / 12;
+  //let cellSize = size / 12;
+  let cellSize = Math.round(size / 12);
   let mapData
   
   if (playing) {
@@ -354,7 +359,7 @@ window.addEventListener("keydown", (e) => {
           let dialogFromCell = returnCell(playerCell[2] + direction[0], playerCell[3] + direction[1])[6];
           currentDialog = dialogFromCell;
           if (dialogFromCell != "") {
-            interact();
+            interact(returnCell(playerCell[2] + direction[0], playerCell[3] + direction[1]));
             
           }
         }
@@ -364,7 +369,7 @@ window.addEventListener("keydown", (e) => {
 })
 
 
-async function interact () {
+async function interact (cellInteractingWith) {
   usingObject = true;
   await loadDialogData(currentDialog);
   outputField.style.textAlign = "center";
@@ -372,11 +377,10 @@ async function interact () {
   dialogTracker  = 0;
   while (usingObject) {
     let output = "\n";
-    let jumping = false;
+    let skip = false;
     // ADDING CURRENT PART OF DIALOG BASED ON TRACKER TO THE DIALOG HISTORY
     dialogHistory.push(dialogsData[currentDialog][dialogTracker])
       //dialogHistory.push(["speech", ])
-    console.log(dialogHistory)
     
     // CREATING DIALOG BASED ON DIALOGHISTORY
     for (let i=0; i<dialogHistory.length; i++) {
@@ -395,16 +399,80 @@ async function interact () {
     
     // ADDING BUTTONS TO END OF DIALOG BASED ON END OF DIALOG HISTORY
     
-    if (dialogHistory[dialogHistory.length - 1][0] == "jump") {
-      dialogTracker = dialogHistory[dialogHistory.length - 1][1];
-      jumping = true;
+    let recentDialog = dialogHistory[dialogHistory.length - 1]
+    
+    if (recentDialog[0] == "jump") {
+      dialogTracker = recentDialog[1];
+      skip = true;
     }
     
-    if (dialogHistory[dialogHistory.length - 1][0] == "end") {
+    if (recentDialog[0] == "add") {
+      if (objects.includes(recentDialog[1])) {
+        if (recentDialog[1] in inventory) {
+          inventory[recentDialog[1]] += recentDialog[2];
+        } else {
+          inventory[recentDialog[1]] = recentDialog[2];
+        }
+      } else {
+        if (recentDialog[1] in globalVariables) {
+          globalVariables[recentDialog[1]] += recentDialog[2];
+        } else {
+          globalVariables[recentDialog[1]] = recentDialog[2];
+        }
+      }
+      dialogTracker++;
+      skip = true;
+    }
+    
+    if (recentDialog[0] == "reduce") {
+      if (recentDialog[1] in inventory) {
+        if (inventory[recentDialog[1]] > (recentDialog[2] - 1)) {
+          inventory[recentDialog[1]] -= recentDialog[2];
+        } else {
+          delete inventory[recentDialog[1]];
+        }
+      } else if (recentDialog[1] in globalVariables) {
+        if (globalVariables[recentDialog[1]] > (recentDialog[2] - 1)) {
+          globalVariables[recentDialog[1]] -= recentDialog[2];
+        } else {
+          globalVariables[recentDialog[1]] = 0;
+        }
+      }
+      dialogTracker++;
+      skip = true;
+    }
+    
+    if (recentDialog[0] == "count") {
+      if (recentDialog[1] in inventory) {
+        if (inventory[recentDialog[1]] > (recentDialog[2] - 1)) {
+          dialogTracker = recentDialog[3];
+        } else {
+          dialogTracker = recentDialog[4];
+        }
+      } else if (recentDialog[1] in globalVariables) {
+        if (globalVariables[recentDialog[1]] > (recentDialog[2] - 1)) {
+          dialogTracker = recentDialog[3];
+        } else {
+          dialogTracker = recentDialog[4];
+        }
+      }
+      skip = true;
+    }
+    
+    if (recentDialog[0] == "destroy") {
+      cellInteractingWith[1] = "";
+      cellInteractingWith[5] = {};
+      cellInteractingWith[6] = "";
+      loadMap("", 0, 0, canvasWidth);
+      dialogTracker++;
+      skip = true;
+    }
+    
+    if (recentDialog[0] == "end") {
       output += "<button class='dialogButton' onclick='endDialog()'>End Dialog</button>"
     }
     
-    if (dialogHistory[dialogHistory.length - 1][0] == "speech") {
+    if (recentDialog[0] == "speech") {
       if (dialogsData[currentDialog][dialogTracker + 1][0] != "end") {
         output += "<button class='dialogButton' onclick='continueDialog()'>Continue</button>";
       } else {
@@ -414,7 +482,8 @@ async function interact () {
     
     outputField.innerHTML = output;
     
-    if (!jumping) {
+    if (!skip) {
+      outputField.scrollTop = outputField.scrollHeight;
       await new Promise(resolve => { waitForPlayerInput = resolve; });
     }
   }
@@ -667,4 +736,4 @@ function nextTurn() {
 
 
 
-gamemaker(); 
+gamemaker();
