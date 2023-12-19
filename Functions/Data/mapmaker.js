@@ -1,4 +1,4 @@
-// WHEN ADDING OBJECT TO SPRITE SHEET. ADD IT TO OBJECTS[] IN MAIN.JSAND GRABOBJECT() CONST.
+// WHEN ADDING OBJECT TO SPRITE SHEET. ADD IT TO OBJECTS[] IN MAIN.JS AND GRABOBJECT() CONST.
 // WHEN ADDING NEW MAP SPRITESHEET ADD IT TO TILES[] IN MAPMAKER() AND SPRITESHEETS{} IN MAIN.JS.
 
 // VARIABLE DECLERATION ->
@@ -201,12 +201,7 @@ function generateObjectList() {
 }
 
 function grabObject(obj) {
-  const objectList = {
-    "void" : {x : 0, y : 0},
-    "flower" : {x : 1, y : 0},
-    "house" : {x : 2, y : 0},
-    "player1" : {x : 3, y : 0}
-  }
+  
   if (obj in objectList) {
     return objectList[obj];
   } else {

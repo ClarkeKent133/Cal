@@ -6,14 +6,17 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
   let mapDescriptions;
   let objectUses;
   let waitForPlayerInput;
+  let equipped;
   let dialogsData;
   let currentDialog;
   let dialogTracker;
   let dialogHistory;
+  let travellingMap;
   let mapPlacements;
   let currentMap;
   let usingObject;
   let currentMapPlacement;
+  let allMaps;
   let currentTurn;
   let playing;
   let gameKeys;
@@ -37,10 +40,13 @@ async function gamemaker () {
       }
       mapPlacements = {};
       usingObject = false;
+      equipped = " ";
       mapsUsed = [];
+      allMaps = {};
       currentDialog = "";
-      globalVariables = {};
+      globalVariables = {"hp" : 15 , "maxhp" : 20 , "mana" : 5 , "maxmana" : 8};
       dialogHistory = [];
+      travellingMap = "world";
       inventory = {};
       dialogTracker = 0;
       data = {};
@@ -53,7 +59,8 @@ async function gamemaker () {
         "map2" : "The top side of a field with some flowers",
         "map3" : "The Right side of a field with a house.",
         "map4" : "The Bottom of the Map",
-        "map5" : "A narrow Stretch"
+        "map5" : "A narrow Stretch",
+        "map6" : "An island."
       }
       objectUses = {
       
@@ -64,15 +71,38 @@ async function gamemaker () {
     } else if (input == "new") {
       clear();
       gameHomepage();
+    } else if (input == "load") {
+      clear();
+      newLine("Please enter the Load Data and hit Enter.");
+      x = "loading";
+      lowerCaseInput = false;
     }
   } else if (x == "homepage") {
-    if (input == "add") {
-      clear();
-      showListOfMaps();
-    } else if (input == "play") {
-      if (Object.keys(data).length > 0) {
+    if (y == 0) {
+      if (input == "add") {
         clear();
-        play();
+        showListOfMaps();
+      } else if (input == "remove") {
+        clear();
+        newLine("Please enter the Name of the Map that you want to remove from your Game.");
+        y = "remove";
+      } else if (input == "play") {
+        if (Object.keys(data).length > 0) {
+          clear();
+          playing = false;
+          play();
+          x = "playing";
+        }
+      }
+    } else if (y == "remove") {
+      clear();
+      if (input == "back") {
+        gameHomepage();
+      } else if (mapsUsed.includes(input)) {
+        mapsUsed.splice(mapsUsed.indexOf(input), 1);
+        gameHomepage();
+      } else {
+        newLine(`${input} is not a currently used Map in your Game or press back.`)
       }
     }
   } else if (x == "addingMap") {
@@ -110,6 +140,31 @@ async function gamemaker () {
     }
   } else if (x === "mapClarification") {
     waitForPlayerInput(); // Signal the async function to continue
+  } else if (x == "playing") {
+    if (input == "back") {
+      showPlayerInfo();
+    } else if (input == "save") {
+      let saveData = JSON.stringify([mapPlacements, currentMapPlacement, allMaps, globalVariables, inventory, data, mapsUsed, travellingMap, dialogsData]);
+      outputField.innerHTML = "\nThis Save Data has also been copied to your Clipboard :\n\n" + saveData + "\n\nYou can enter Back to return.";
+      navigator.clipboard.writeText(saveData);
+    }
+  } else if (x == "loading") {
+    let saveData = JSON.parse(input);
+    mapPlacements = saveData[0];
+    currentMapPlacement = saveData[1];
+    allMaps = saveData[2];
+    globalVariables = saveData[3];
+    inventory = saveData[4];
+    data = saveData[5];
+    mapsUsed = saveData[6];
+    travellingMap = saveData[7];
+    dialogsData = saveData[8];
+    
+    lowerCaseInput = true;
+    x = "playing";
+    clear();
+    playing = true;
+    play();
   }
 }
 
@@ -245,7 +300,7 @@ function gameHomepage() {
   for (let i = 0; i < Object.keys(data).length; i++) {
     usedMapList += `- ${mapsUsed[i]}\n`
   }
-  newLine(`To Add a Map to your game simply use the Command Add.\n\nTo Edit a Map already in your game simply use the Command Edit\n\nTo Remove a Map already in your game simply use the Command Remove\n\n` + usedMapList);
+  newLine(`To Add a Map to your game simply use the Command Add.\n\nAlternativly to Remove a Map already in your game simply use the Command Remove\n\n` + usedMapList);
   x = "homepage";
   y = 0;
 }
@@ -277,24 +332,26 @@ function play() {
   openCanvas();
   
   
-  currentMap = "";
-  for (let i=0; i < Object.keys(data).length; i++) {
-    let key = Object.keys(data)[i]
-    for (let cell=0; cell<144; cell++) {
-      if (data[key][cell][1] == "player1") {
-        currentMap = key;
+  if (!playing) {
+    currentMap = "";
+    for (let i=0; i < Object.keys(data).length; i++) {
+      let key = Object.keys(data)[i]
+      for (let cell=0; cell<144; cell++) {
+        if (data[key][cell][1] == "player1") {
+          currentMap = key;
+          break;
+        }
+      }
+      if (currentMap != "") {
         break;
       }
     }
-    if (currentMap != "") {
-      break;
-    }
+    mapPlacements["0x0"] = JSON.parse(JSON.stringify(data[currentMap]));
+    currentMapPlacement = [0, 0];
   }
-  
-  currentTurn = "player1";
-  mapPlacements["0x0"] = JSON.parse(JSON.stringify(data[currentMap]));
-  currentMapPlacement = [0, 0];
   playing = true;
+  currentTurn = "player1";
+  showPlayerInfo();
   loadMap("", 0, 0, canvasWidth);
 }
 
@@ -385,7 +442,8 @@ async function interact (cellInteractingWith) {
     // CREATING DIALOG BASED ON DIALOGHISTORY
     for (let i=0; i<dialogHistory.length; i++) {
       if (dialogHistory[i][0] == "speech") {
-        output += `<u>${dialogHistory[i][1]}</u>\n${dialogHistory[i][2]}\n\n`;
+        let txt = eval("`" + dialogHistory[i][2] + "`");
+        output += `<u>${dialogHistory[i][1]}</u>\n${txt}\n\n`;
       } else if (dialogHistory[i][0] == "choice") {
         if (dialogHistory[i][1].length == 1) {
           output += "<hr>\nChoice: " + dialogHistory[i][1][0][0] + "\n\n<hr>\n"
@@ -404,6 +462,37 @@ async function interact (cellInteractingWith) {
     if (recentDialog[0] == "jump") {
       dialogTracker = recentDialog[1];
       skip = true;
+    }
+    
+    if (recentDialog[0] == "travel") {
+      allMaps[travellingMap] = [mapPlacements, currentMapPlacement];
+      if (!(recentDialog[1] in allMaps)) {
+        loadMapData(recentDialog[2]);
+        allMaps[recentDialog[1]] = [{"0x0" : data[recentDialog[2]]} , [0, 0]]
+      }
+      travellingMap = recentDialog[1]
+      mapPlacements = allMaps[travellingMap][0];
+      currentMapPlacement = allMaps[travellingMap][1]
+      loadMap("", 0, 0, canvasWidth);
+      usingObject = false;
+      skip = true;
+      
+    }
+    
+    if (recentDialog[0] == "swap") {
+      if (objects.includes(recentDialog[1]) && objects.includes(recentDialog[2]) && allDialogs.includes(recentDialog[3])) {
+        for (let cell=0; cell<144; cell++) {
+          let currentCell = mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][cell]
+          if (currentCell[1] == recentDialog[1]) {
+            currentCell[1] = recentDialog[2];
+            currentCell[5] = objectList[recentDialog[2]];
+            currentCell[6] = recentDialog[3];
+          }
+        }
+        dialogTracker++;
+        loadMap("", 0, 0, canvasWidth);
+        skip = true;
+      }
     }
     
     if (recentDialog[0] == "add") {
@@ -480,6 +569,7 @@ async function interact (cellInteractingWith) {
       }
     }
     
+    
     outputField.innerHTML = output;
     
     if (!skip) {
@@ -487,8 +577,19 @@ async function interact (cellInteractingWith) {
       await new Promise(resolve => { waitForPlayerInput = resolve; });
     }
   }
-  outputField.innerHTML = "";
+  showPlayerInfo();
   dialogTracker = 0;
+}
+
+function showPlayerInfo () {
+  outputField.style.textAlign = "left";
+  info = "<h2>Stats</h2>\n\n";
+  info += `<b>Current Life</b> : ${globalVariables["hp"]} / ${globalVariables["maxhp"]}\n<b>Current Mana</b> : ${globalVariables["mana"]} / ${globalVariables["maxmana"]}\n\n<b>Currently Equipped</b> : ${equipped}\n\n<b>Inventory</b> :\n\n`;
+  for (let i=0; i<Object.keys(inventory).length; i++) {
+    let item = Object.keys(inventory)[i];
+    info += `  - ${item}   x ${inventory[item]}\n`
+  }
+  outputField.innerHTML = info;
 }
 
 function continueDialog() {

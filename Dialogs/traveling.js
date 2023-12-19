@@ -1,0 +1,1 @@
+var traveling = [["travel","Cave","map6"], ["end"]]

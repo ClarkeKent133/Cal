@@ -29,6 +29,12 @@ const keys = {
   }
 };
 const objects = ["none", "void", "flower", "house", "player1"];
+const objectList = {
+  "void": { x: 0, y: 0 },
+  "flower": { x: 1, y: 0 },
+  "house": { x: 2, y: 0 },
+  "player1": { x: 3, y: 0 }
+}
 const spriteSheets  = {
   "objects" : newImage("/SpriteSheets/objects.png"),
   "blackBorder" : newImage("/SpriteSheets/blackBorder.png"),
@@ -38,7 +44,9 @@ const spriteSheets  = {
 
 const allDialogs = [
   "unknown_dialog",
-  "test"
+  "test",
+  "traveling",
+  "back"
   ]
 
 const functionList = [

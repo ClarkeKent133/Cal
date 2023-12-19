@@ -1,3 +1,5 @@
+// IF NEW DIALOG CREATED JUST ADD IT TO THE ARRAY IN MAIN.JS
+
 if (typeof data == 'undefined') { // VARIABLE DECLERATION
   let data;
   let dialog;
@@ -8,7 +10,7 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
 
 function dialogmaker() {
   outputField.style.textAlign = "center";
-  const uses = ['speech', 'save', 'undo', 'choice', 'jump', 'add', 'reduce', 'count', 'destroy', 'end']
+  const uses = ['speech', 'save', 'undo', 'choice', 'jump', 'travel', 'swap', 'add', 'reduce', 'count', 'destroy', 'end']
   
   
   if (x == 0) { // DECIDING NEW OR LOADING DIALOG
@@ -46,10 +48,16 @@ function dialogmaker() {
           data.push(["end"]);
           loadActiveDialog();
           y = 0;
+        } else if (input == "swap") { 
+          newLine("Please enter the Name of the Object that you want to change every instance of, on your current Map.");
+          y = "swap";
         } else if (input == "destroy") {
           data.push(["destroy"]);
           loadActiveDialog();
           y = 0;
+        } else if (input == "travel") {
+          newLine("Please enter the Name of the Area that you want to Travel to, To travel back to the defualt Area just enter World. Otherwise enter a unique name then whenever you travel to this unique name in the future you will go to the same Area and at the same location that you left.");
+          y = "travel";
         } else if (input == "count") {
           newLine("Please enter either the Name of an Object in a Player's Inventory or of a Global Variable. This is what you will be checking.");
           y = "count";
@@ -87,6 +95,33 @@ function dialogmaker() {
           newLine(`Please enter the Dialog of ${z}.`);
         } else {
           data.push(["speech", z, input])
+          y = 0;
+          z = 0;
+          loadActiveDialog();
+        }
+      } else if (y == "swap") { 
+        clear();
+        if (z == 0) {
+          data.push(["swap", input]);
+          newLine("Please enter the name of the Object that you wish to swap the instances to.");
+          z = 1;
+        } else if (z == 1) {
+          data[data.length - 1].push(input);
+          newLine("Please enter the name of the Dialog that you wish for the new Objects to use.");
+          z = 2
+        } else {
+          data[data.length - 1].push(input);
+          y = 0;
+          z = 0;
+          loadActiveDialog();
+        }
+      } else if (y == "travel") {
+        clear();
+        if (z == 0) {
+          z = input;
+          newLine(`You have entered ${z} as the name of the Area that you are Travelling to. If this would be the Player's first time travelling to this Area, please enter the name of the Map that will be used as this locations initial Map. map4 or map36 for example.\n\nIf the Player has already been to this Area before, or if it is the World Area. Then please enter NA.`);
+        } else {
+          data.push(["travel", z, input]);
           y = 0;
           z = 0;
           loadActiveDialog();
@@ -211,7 +246,7 @@ function makeDecision () {
 function loadActiveDialog () {
   clear();
   lowerCaseInput = true;
-  newLine("Here are the available Functions:\n\n- Speech (Used to enter a new speech)\n- Jump (This will jump you to a point in this dialog, this is the number above each element)\n- Choice (Used to create a choice for the reader to choose, doing so takes them to a certain point in this dialog the same way as 'Jump'.)\n- Save (This will provide the Save data for Current dialog for you to save manually)\n- Add (Either adds an Object to the player's Inventory, or adds to a Global Variable within the Dialog)\n- Reduce (Either reduces the amount of an Object in a player's Inventory, or reduces a Global Variable within the Dialog. Cannot reduce below 0)\n- Count (If the stated Object in a Player's Inventory or Global Variable is equal or Greater than the given Value, then Jump the Dialog to the ID given if true, otherwise Jump the Dialog to the ID if false)\n- Undo (This will undo the most recent addition to your Dialog)\n- Destroy (Removes the Object from the Map)\n- End (When a Dialog gets to this ID the dialog ends, the Dialog cannot end without it)");
+  newLine("Here are the available Functions:\n\n- Speech (Used to enter a new speech)\n- Jump (This will jump you to a point in this dialog, this is the number above each element)\n- Choice (Used to create a choice for the reader to choose, doing so takes them to a certain point in this dialog the same way as 'Jump'.)\n- Travel (By using the Name of a Map and a unique name you want to give the Area, you can take the Player to a new Location, note the defualt area has the name World)\n- Save (This will provide the Save data for Current dialog for you to save manually)\n- Add (Either adds an Object to the player's Inventory, or adds to a Global Variable within the Dialog)\n- Reduce (Either reduces the amount of an Object in a player's Inventory, or reduces a Global Variable within the Dialog. Cannot reduce below 0)\n- Swap (Swaps all of an Object on your current Map with another Object and changes their Dialog)\n- Count (If the stated Object in a Player's Inventory or Global Variable is equal or Greater than the given Value, then Jump the Dialog to the ID given if true, otherwise Jump the Dialog to the ID if false)\n- Undo (This will undo the most recent addition to your Dialog)\n- Destroy (Removes the Object from the Map)\n- End (When a Dialog gets to this ID the dialog ends, the Dialog cannot end without it)");
   dialog = "";
   for (let i=0; i<data.length; i++) {
     if (data[i][0] == "speech") {
@@ -229,7 +264,11 @@ function loadActiveDialog () {
     } else if (data[i][0] == "reduce") {
       dialog += `<b>${i}</b>\n<u>Reduce</u>\nReducing ${data[i][2]} from ${data[i][1]}\n\n`;
     } else if (data[i][0] == "destroy") {
-      dialog += `<b>${i}</b>\n<u>Destory</u>\n\n`
+      dialog += `<b>${i}</b>\n<u>Destory</u>\n\n`;
+    } else if (data[i][0] == "swap") { 
+      dialog += `<b>${i}</b>\n<u>Swap</u>\nSwaping all instances of ${data[i][1]} with ${data[i][2]} and giving Dialog ${data[i][3]}.\n\n`
+    } else if (data[i][0] == "travel") {
+      dialog += `<b>${i}</b>\n<u>Travel</u>\nTraveling to the Area ${data[i][1]}, If this is the first time ${data[i][2]} will be used.\n\n`
     } else if (data[i][0] == "count") {
       dialog += `<b>${i}</b>\n<u>Count</u>\nChecking if there is at least ${data[i][2]} of ${data[i][1]}\nIf True : ${data[i][3]}\nIf False : ${data[i][4]}\n\n`
     } else if (data[i][0] == "end") {
@@ -237,6 +276,7 @@ function loadActiveDialog () {
     }
   }
   newLine(dialog);
+  outputField.scrollTop = outputField.scrollHeight;
   
 }
 
