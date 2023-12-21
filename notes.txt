@@ -1,0 +1,13 @@
+To Do:
+
+ - Make a onUse function which recieves a dictionary, based on if the dictionary has several keys, it does different things.
+ 
+ - Add ability to Drop item from inventory as an object in the world to interact with. just check if there is an object infront of you.
+ 
+ - Add ability for turns and the Game Checks PC turn, CP (Computer Passive) and CE (Computer Enemy). And it displays the current turn as Player/NPC.
+ 
+ - Have it so that when you save, rather than just using the clipboard it asks if you want to download it as a text file and that it is recommended for large games as not all devices can have so much text in their clipboard and some may be lost.
+ 
+ - Update Sprites.
+ 
+ - Make First Game.

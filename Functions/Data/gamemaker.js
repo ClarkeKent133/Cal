@@ -1,5 +1,6 @@
 // WHEN I WANT TO INCLUDE A NEW MAP, ENSURE THE .JS FILE IS IN MAPDATA FOLDER AND THEN ADD DESCRIPTION IN GAMEMAKER().
 
+
 if (typeof data == 'undefined') { // VARIABLE DECLERATION
   let data;
   let mapsUsed;
@@ -15,7 +16,9 @@ if (typeof data == 'undefined') { // VARIABLE DECLERATION
   let mapPlacements;
   let currentMap;
   let usingObject;
+  let interacting;
   let currentMapPlacement;
+  let objectVariables;
   let allMaps;
   let currentTurn;
   let playing;
@@ -39,7 +42,9 @@ async function gamemaker () {
         "e": false
       }
       mapPlacements = {};
-      usingObject = false;
+      usingObject = "";
+      interacting = false;
+      objectVariables = {};
       equipped = " ";
       mapsUsed = [];
       allMaps = {};
@@ -63,11 +68,13 @@ async function gamemaker () {
         "map6" : "An island."
       }
       objectUses = {
-      
+        "flower" : {"hp" : 10, "range" : 2, "radius" : 1},
+        "house" : {"hp" : 5, "range" : 0},
+        "PC_first" : {"hp" : 5, "range" : 0}
       };
       //openCanvas();
       clear();
-      newLine("Welcome to the Game Maker !!\n\nWould you like to create a new game or load one from save data? To choose please enter the commands New or Load.");
+      newLine("Welcome to the Game Maker !!\n\nWould you like to create a new game or one from save data? To choose please enter the commands New or Load.");
     } else if (input == "new") {
       clear();
       gameHomepage();
@@ -140,13 +147,41 @@ async function gamemaker () {
     }
   } else if (x === "mapClarification") {
     waitForPlayerInput(); // Signal the async function to continue
+    
   } else if (x == "playing") {
     if (input == "back") {
+      y = 0;
+      usingObject = false;
       showPlayerInfo();
-    } else if (input == "save") {
-      let saveData = JSON.stringify([mapPlacements, currentMapPlacement, allMaps, globalVariables, inventory, data, mapsUsed, travellingMap, dialogsData]);
-      outputField.innerHTML = "\nThis Save Data has also been copied to your Clipboard :\n\n" + saveData + "\n\nYou can enter Back to return.";
-      navigator.clipboard.writeText(saveData);
+    }
+    if (y == 0) {
+      if (input == "save") {
+        outputField.style.textAlign = "left";
+        let saveData = JSON.stringify([mapPlacements, currentMapPlacement, allMaps, globalVariables, inventory, data, mapsUsed, travellingMap, dialogsData]);
+        outputField.innerHTML = "\nThis Save Data has also been copied to your Clipboard :\n\n" + saveData + "\n\nYou can enter Back to return.";
+        navigator.clipboard.writeText(saveData);
+      } else if (input == "use") {
+        outputField.style.textAlign = "left";
+        let output = `<h2>Using</h2>\nPlease enter the Number of the Item in your Inventory that you want to Use.\n\n`;
+        for (let i = 0; i < Object.keys(inventory).length; i++) {
+          let item = Object.keys(inventory)[i];
+          output += `  ${i} - ${item}   x ${inventory[item]}\n`
+        }
+        outputField.innerHTML = output;
+        y = "usingSelection"
+      }
+    } else if (y == "usingSelection") {
+      if (!isNaN(parseInt(input))) {
+        if (parseInt(input) < (Object.keys(inventory).length +1) && parseInt(input) > -1) {
+          let usingObj = Object.keys(inventory)[parseInt(input)];
+          if (inventory[usingObj] > 0) {
+            // ADD AN IF HERE THAT FIGURES OUT IF YOU DONT NEED TO STATE THE DIRECTION AS DEFAULT IS YES
+            clear();
+            usingObject = usingObj;
+            outputField.innerHTML = `<h2>Using</h2>\nPlease Move in the Direction that you want to Use the ${usingObj}.\n\nAlternativly you can enter Back to change your mind.`
+          }
+        }
+      } 
     }
   } else if (x == "loading") {
     let saveData = JSON.parse(input);
@@ -255,6 +290,9 @@ function loadMap (mapID, posX, posY, size) {
       c.drawImage(spriteSheets["objects"], mapData[i][5].x * 16, mapData[i][5].y * 16, 16, 16, (posX + (mapData[i][2] * cellSize)), (posY + (mapData[i][3] * cellSize)), cellSize, cellSize);
     }
   }
+  
+  enteringMap();
+  
 }
 
 async function loadMapData (mapName) {
@@ -337,7 +375,7 @@ function play() {
     for (let i=0; i < Object.keys(data).length; i++) {
       let key = Object.keys(data)[i]
       for (let cell=0; cell<144; cell++) {
-        if (data[key][cell][1] == "player1") {
+        if (data[key][cell][1].includes("PC")) {
           currentMap = key;
           break;
         }
@@ -350,7 +388,7 @@ function play() {
     currentMapPlacement = [0, 0];
   }
   playing = true;
-  currentTurn = "player1";
+  currentTurn = "PC";
   showPlayerInfo();
   loadMap("", 0, 0, canvasWidth);
 }
@@ -369,55 +407,74 @@ window.addEventListener("keydown", (e) => {
   if (playing) {
     let key = e.key;
     if (key == "a" && gameKeys["a"] == false) {
-      if (currentTurn == "player1" || currentTurn == "player2") {
-        if (!usingObject) {
-          let playerCell = returnObject(currentTurn)
+      if (currentTurn == "PC") {
+        if (usingObject == "" && !interacting) {
+          let playerCell = returnObject(currentTurn)[0];
           objectMove({ x: playerCell[2], y: playerCell[3] }, [-1, 0])
           direction = [-1, 0];
           gameKeys["a"] = true
+        } else if (usingObject !== "") {
+          direction = [-1, 0];
+          let cell = returnObject(currentTurn)[0];
+          onUse(objectUses[usingObject], [-1, 0], [cell[2], cell[3]]);
+          usingObject = "";
         }
       }
     }
     if (key == "s" && gameKeys["s"] == false) {
-      if (currentTurn == "player1" || currentTurn == "player2") {
-        if (!usingObject) {
-          let playerCell = returnObject(currentTurn)
+      if (currentTurn == "PC") {
+        if (usingObject == "" && !interacting) {
+          let playerCell = returnObject(currentTurn)[0];
           objectMove({ x: playerCell[2], y: playerCell[3] }, [0, 1]);
           direction = [0, 1];
           gameKeys["s"] = true
-        }
+        } else if (usingObject !== "") {
+          direction = [0, 1];
+           let cell = returnObject(currentTurn)[0];
+          onUse(objectUses[usingObject], [0, 1], [cell[2], cell[3]]);
+          usingObject = "";
+         }
       }
     }
     if (key == "d" && gameKeys["d"] == false) {
-      if (currentTurn == "player1" || currentTurn == "player2") {
-        if (!usingObject) {
-          let playerCell = returnObject(currentTurn)
+      if (currentTurn == "PC") {
+        if (usingObject == "" && !interacting) {
+          let playerCell = returnObject(currentTurn)[0];
           objectMove({ x: playerCell[2], y: playerCell[3] }, [1, 0]);
           direction = [1, 0];
           gameKeys["d"] = true
-        }
+        } else if (usingObject !== "") {
+           let cell = returnObject(currentTurn)[0];
+          direction = [1, 0];
+          onUse(objectUses[usingObject], [1, 0], [cell[2], cell[3]]);
+          usingObject = "";
+         }
       }
     }
     if (key == "w" && gameKeys["w"] == false) {
-      if (currentTurn == "player1" || currentTurn == "player2") {
-        if (!usingObject) {
-          let playerCell = returnObject(currentTurn)
+      if (currentTurn == "PC") {
+        if (usingObject == "" && !interacting) {
+          let playerCell = returnObject(currentTurn)[0];
           objectMove({ x: playerCell[2], y: playerCell[3] }, [0, -1]);
           direction = [0, -1];
           gameKeys["w"] = true
-        }
+        } else if (usingObject !== "") {
+           let cell = returnObject(currentTurn)[0];
+          direction = [0, -1];
+          onUse(objectUses[usingObject], [0, -1], [cell[2], cell[3]]);
+          usingObject = "";
+         }
       }
     }
     if (key == "e" && gameKeys["e"] == false) {
-      if (currentTurn == "player1" || currentTurn == "player2") {
-        if (!usingObject) {
+      if (currentTurn == "PC") {
+        if (usingObject == "" && !interacting) {
           gameKeys["e"] = true;
-          let playerCell = returnObject(currentTurn);
+          let playerCell = returnObject(currentTurn)[0];
           let dialogFromCell = returnCell(playerCell[2] + direction[0], playerCell[3] + direction[1])[6];
           currentDialog = dialogFromCell;
           if (dialogFromCell != "") {
             interact(returnCell(playerCell[2] + direction[0], playerCell[3] + direction[1]));
-            
           }
         }
       }
@@ -426,13 +483,79 @@ window.addEventListener("keydown", (e) => {
 })
 
 
+function enteringMap () {
+  let cP = returnObject("CP");
+  for (let i=0; i<cP.length; i++) {
+    let obj = `${travellingMap}-${currentMapPlacement[0]}x${currentMapPlacement[1]}-${cP[i][2]}x${cp[i][3]}`
+    if (!(obj in objectVariables)) {
+      objectVariables[obj] = objectUses[cp[i][1]]
+    }
+  }
+  let cE = returnObject("CE");
+  for (let i = 0; i < cE.length; i++) {
+    let obj = `${travellingMap}-${currentMapPlacement[0]}x${currentMapPlacement[1]}-${cP[i][2]}x${cp[i][3]}`
+    if (!(obj in objectVariables)) {
+      objectVariables[`${travellingMap}-${currentMapPlacement[0]}x${currentMapPlacement[1]}-${cE[i][2]}x${cE[i][3]}`] = objectUses[cE[i][1]];
+    }
+  }
+  
+}
+
+
+
+function onUse(obj, dir, userPos) {
+  
+  let affectingCells = []; // AN ARRAY OF CELLS SUCH AS 4X3 OR 8X11 WHICH ARE THE CELLS THAT THIS TARGET AND AFFECT.
+  
+  let radii = [
+    [[0,0]], // RADIUS = 0
+    [[0, 0], [1, 0], [0, 1], [-1, 0], [0, -1]], // RADIUS = 1
+    [[0, 0], [1, 0], [0, 1], [-1, 0], [0, -1], [0, -2], [1, -1], [2, 0], [1, 1], [0, 2], [-1, 1], [-2, 0], [-1, -1]], // RADIUS = 2
+    [[0, 0], [1, 0], [0, 1], [-1, 0], [0, -1], [0, -2], [1, -1], [2, 0], [1, 1], [0, 2], [-1, 1], [-2, 0], [-1, -1], [0, -3], [1, -2], [2, -1], [3, 0], [2, 1], [1, 2], [0, 3], [-1, 2], [-2, 1], [-3, 0], [-2, -1], [-1, -2]] // RADIUS = 3
+  ]
+  
+  for (let i=0; i<radii[obj["radius"]].length; i++) {
+    let cell = radii[obj["radius"]][i];
+    cell[0] += dir[0] * obj["range"] + userPos[0];
+    cell[1] += dir[1] * obj["range"] + userPos[1];
+    affectingCells.push(cell);
+  }
+  
+  
+  for (let cell=0; cell<affectingCells.length; cell++) {
+    let dataToChange
+    let cellD = returnCell(affectingCells[cell][0], affectingCells[cell][1])
+    if (cellD[1] != "") {
+      if (cellD[1].includes("PC")) {
+        dataToChange = globalVariables;
+      } else {
+        dataToChange = objectVariables[`${travellingMap}-${currentMapPlacement[0]}x${currentMapPlacement[1]}-${cellD[2]}x${cellD[3]}`];
+      }
+      
+      
+      if ("damage" in obj) {
+        dataToChange["hp"] -= obj["damage"];
+        if (dataToChange["hp"] == 0) {
+          // DELETE OBJECT TO DO
+        }
+      }
+      
+      
+    }
+  }
+  
+  
+}
+  
+
+
 async function interact (cellInteractingWith) {
-  usingObject = true;
+  interacting = true;
   await loadDialogData(currentDialog);
   outputField.style.textAlign = "center";
   dialogHistory = [];
   dialogTracker  = 0;
-  while (usingObject) {
+  while (interacting) {
     let output = "\n";
     let skip = false;
     // ADDING CURRENT PART OF DIALOG BASED ON TRACKER TO THE DIALOG HISTORY
@@ -474,7 +597,7 @@ async function interact (cellInteractingWith) {
       mapPlacements = allMaps[travellingMap][0];
       currentMapPlacement = allMaps[travellingMap][1]
       loadMap("", 0, 0, canvasWidth);
-      usingObject = false;
+      interacting = false;
       skip = true;
       
     }
@@ -604,18 +727,26 @@ function choiceDialog (choiceArray) {
 }
 
 function endDialog () {
-  usingObject = false;
+  interacting = false;
   waitForPlayerInput();
 }
 
 
 function returnObject(objectName) {
   // OBJECT NAME CAN BE ANY NAME LIKE PLAYER1 OR HOUSE. THIS WILL RETURN THE FIRST CELL WITH IT IN THE CURRENT MAP
+  let list = []
   for (let cell = 0; cell < 144; cell++) {
+    if (objectName == "PC" || objectName == "CP" || objectName == "CE"){
+      if (mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][cell][1].includes(objectName)) {
+        list.push(mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][cell]);
+      }
+    }
     if (mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][cell][1] == objectName) {
-      return mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][cell];
+      list.push(mapPlacements[`${currentMapPlacement[0]}x${currentMapPlacement[1]}`][cell])
     }
   }
+  
+  return list;
 }
 
 function returnCell (cellX, cellY) {
@@ -825,16 +956,9 @@ function objectMove(objSrc, direction) {
 }
 
 function nextTurn() {
-  let turnList = ["player1", "AI"];
-  let i = turnList.indexOf(currentTurn);
-  if (i != (turnList.length - 1)) {
-    i ++
-  } else {
-    i = 0
-  }
-  currentTurn = turnList[i]
+  currentTurn = "PC"
+  
 }
-
 
 
 gamemaker();

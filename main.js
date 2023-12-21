@@ -28,12 +28,12 @@ const keys = {
     y : 0
   }
 };
-const objects = ["none", "void", "flower", "house", "player1"];
+const objects = ["none", "void", "flower", "house", "PC_first"];
 const objectList = {
   "void": { x: 0, y: 0 },
   "flower": { x: 1, y: 0 },
   "house": { x: 2, y: 0 },
-  "player1": { x: 3, y: 0 }
+  "PC_first": { x: 3, y: 0 }
 }
 const spriteSheets  = {
   "objects" : newImage("/SpriteSheets/objects.png"),
